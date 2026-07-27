@@ -212,17 +212,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   contentPadding: const EdgeInsets.symmetric(vertical: 16),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(
-                      color: AppTheme.primaryGreen,
-                      width: 2,
+                    borderSide: BorderSide(
+                      color: Colors.grey.shade300,
+                      width: 1,
                     ),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(
-                      color: AppTheme.primaryGreen,
-                      width: 2,
-                    ), // Kept green as in the screenshot
+                    borderSide: BorderSide(
+                      color: Colors.grey.shade300,
+                      width: 1,
+                    ), 
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
