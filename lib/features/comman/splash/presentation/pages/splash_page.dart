@@ -7,46 +7,30 @@ class SplashPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF2E5E16),
       body: Stack(
         children: [
-          // Background decorative shapes
-          Positioned.fill(child: CustomPaint(painter: _BackgroundPainter())),
-
-          // Hanging lamps (top area)
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 260,
-            child: CustomPaint(painter: _LampsPainter()),
+          // Splash background image from assets
+          Positioned.fill(
+            child: Image.asset('assets/images/Splash.png', fit: BoxFit.cover),
           ),
 
-          // Main content
+          // Main content (Buttons)
           SafeArea(
             child: Column(
               children: [
-                const Spacer(
-                  flex: 3,
-                ), // Reduced top space to move everything up
-                // ── Logo Icon ──
-                Container(
-                  width: 95,
-                  height: 95,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF3D6B1E),
-                    borderRadius: BorderRadius.circular(22),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(22),
-                    child: Image.asset(
-                      'assets/images/agrimart_logo.png',
-                      fit: BoxFit.cover,
-                    ),
+                const Spacer(flex: 3),
+
+                // ── Logo Image ──
+                Center(
+                  child: Image.asset(
+                    'assets/images/Group 462.png',
+                    height: 100,
+                    width: 100,
+                    fit: BoxFit.contain,
                   ),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
 
                 // ── App Name ──
                 const Text(
@@ -73,9 +57,8 @@ class SplashPage extends StatelessWidget {
                   ),
                 ),
 
-                const SizedBox(
-                  height: 48,
-                ), // Fixed space between tagline and buttons
+                const SizedBox(height: 35),
+
                 // ── Buttons ──
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 40),
@@ -143,9 +126,7 @@ class SplashPage extends StatelessWidget {
                   ),
                 ),
 
-                const Spacer(
-                  flex: 4,
-                ), // Increased bottom space to push buttons up
+                const Spacer(flex: 3),
               ],
             ),
           ),
@@ -153,154 +134,4 @@ class SplashPage extends StatelessWidget {
       ),
     );
   }
-}
-
-// ─── Background Shapes Painter ──────────────────────────────────────────────
-
-class _BackgroundPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final lightGreen = Paint()
-      ..color = const Color(0xFFDCE9C8)
-      ..style = PaintingStyle.fill;
-
-    final darkGreen = Paint()
-      ..color = const Color(0xFF244D0F)
-      ..style = PaintingStyle.fill;
-
-    // ── Top-right dark shape (drawn first so it's behind the light shape) ──
-    final topRight = Path()
-      ..moveTo(size.width * 0.20, 0)
-      ..lineTo(size.width, 0)
-      ..lineTo(size.width, size.height * 0.04) // Reduced height
-      ..lineTo(size.width * 0.10, size.height * 0.16) // Reduced height
-      ..close();
-    canvas.drawPath(topRight, darkGreen);
-
-    // ── Top-left light shape ──
-    final topLeft = Path()
-      ..moveTo(0, 0)
-      ..lineTo(size.width * 0.45, 0) // Top edge
-      ..lineTo(size.width * 0.58, size.height * 0.11) // Reduced height
-      // Rounded corner at the bottom right of this shape
-      ..quadraticBezierTo(
-        size.width * 0.61,
-        size.height * 0.15,
-        size.width * 0.52,
-        size.height * 0.17,
-      )
-      ..lineTo(0, size.height * 0.24) // Reduced height
-      ..close();
-    canvas.drawPath(topLeft, lightGreen);
-
-    // ── Bottom-left dark shape  ──
-    final bottomLeft = Path()
-      ..moveTo(0, size.height)
-      ..lineTo(size.width, size.height)
-      ..lineTo(size.width, size.height * 0.82)
-      ..lineTo(0, size.height * 0.95)
-      ..close();
-    canvas.drawPath(bottomLeft, darkGreen);
-
-    // ── Bottom-right light shape  ──
-    final bottomRight = Path()
-      ..moveTo(size.width, size.height)
-      ..lineTo(size.width * 0.50, size.height)
-      ..lineTo(size.width * 0.38, size.height * 0.84)
-      ..quadraticBezierTo(
-        size.width * 0.37,
-        size.height * 0.79,
-        size.width * 0.48,
-        size.height * 0.76,
-      )
-      ..lineTo(size.width, size.height * 0.70)
-      ..close();
-    canvas.drawPath(bottomRight, lightGreen);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-// ─── Lamps Painter ──────────────────────────────────────────────────────────
-
-class _LampsPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final wirePaint = Paint()
-      ..color = const Color(0xFF64B5F6)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2;
-
-    final lampBody = Paint()
-      ..color = const Color(0xFFD8DCC8)
-      ..style = PaintingStyle.fill;
-
-    final lampShade = Paint()
-      ..color = const Color(0xFFEBEFDF)
-      ..style = PaintingStyle.fill;
-
-    // Draw two lamps
-    _drawLamp(
-      canvas,
-      size.width * 0.22,
-      size.height * 0.72,
-      wirePaint,
-      lampBody,
-      lampShade,
-    );
-    _drawLamp(
-      canvas,
-      size.width * 0.45,
-      size.height * 0.60,
-      wirePaint,
-      lampBody,
-      lampShade,
-    );
-  }
-
-  void _drawLamp(
-    Canvas canvas,
-    double x,
-    double y,
-    Paint wire,
-    Paint body,
-    Paint shade,
-  ) {
-    // Wire from top
-    canvas.drawLine(Offset(x, 0), Offset(x, y), wire);
-
-    // Lamp neck
-    final neckRect = Rect.fromCenter(
-      center: Offset(x, y + 8),
-      width: 8,
-      height: 16,
-    );
-    canvas.drawRect(neckRect, body);
-
-    // Lamp shade (trapezoid shape)
-    final shadePath = Path()
-      ..moveTo(x - 6, y + 8)
-      ..lineTo(x + 6, y + 8)
-      ..lineTo(x + 34, y + 44)
-      ..lineTo(x - 34, y + 44)
-      ..close();
-    canvas.drawPath(shadePath, shade);
-
-    // Lamp shade bottom line accent
-    final linePaint = Paint()
-      ..color = const Color(0xFFB0B8A0)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-    canvas.drawLine(Offset(x - 34, y + 44), Offset(x + 34, y + 44), linePaint);
-
-    // Cap on top of shade
-    final capPath = Path()
-      ..moveTo(x - 8, y + 8)
-      ..quadraticBezierTo(x, y + 2, x + 8, y + 8);
-    canvas.drawPath(capPath, linePaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
