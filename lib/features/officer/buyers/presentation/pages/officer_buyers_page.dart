@@ -11,6 +11,7 @@ class OfficerBuyersPage extends StatelessWidget {
         automaticallyImplyLeading: false,
         backgroundColor: const Color(0xFF8D5A36), // Brown
         elevation: 0,
+        centerTitle: false,
         title: const Text(
           'Manage Buyers',
           style: TextStyle(
@@ -39,10 +40,7 @@ class OfficerBuyersPage extends StatelessWidget {
             // Subtitle
             Text(
               'Agricultural Officer — Zone 3 Overview',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey.shade500,
-              ),
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
             ),
             const SizedBox(height: 16),
 
@@ -75,7 +73,9 @@ class OfficerBuyersPage extends StatelessWidget {
                     'Suspended',
                     bgColor: Colors.red.shade50,
                     borderColor: Colors.red.shade100,
-                    textColor: Colors.brown.shade800, // Using dark brown as per screenshot
+                    textColor: Colors
+                        .brown
+                        .shade800, // Using dark brown as per screenshot
                   ),
                 ),
               ],
@@ -218,7 +218,11 @@ class OfficerBuyersPage extends StatelessWidget {
     );
   }
 
-  Widget _buildBuyerCard({required String name, required String details, bool isTopBuyer = false}) {
+  Widget _buildBuyerCard({
+    required String name,
+    required String details,
+    bool isTopBuyer = false,
+  }) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -245,7 +249,11 @@ class OfficerBuyersPage extends StatelessWidget {
               children: [
                 Text(
                   name,
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -266,7 +274,9 @@ class OfficerBuyersPage extends StatelessWidget {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.bold,
-                color: isTopBuyer ? Colors.blue.shade700 : const Color(0xFF2E7D32),
+                color: isTopBuyer
+                    ? Colors.blue.shade700
+                    : const Color(0xFF2E7D32),
               ),
             ),
           ),

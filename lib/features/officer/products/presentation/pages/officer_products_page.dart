@@ -11,6 +11,7 @@ class OfficerProductsPage extends StatelessWidget {
         automaticallyImplyLeading: false,
         backgroundColor: const Color(0xFF8D5A36), // Brown
         elevation: 0,
+        centerTitle: false,
         title: const Text(
           'Manage Products',
           style: TextStyle(
@@ -247,7 +248,10 @@ class OfficerProductsPage extends StatelessWidget {
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.orange.shade50,
                             borderRadius: BorderRadius.circular(12),
@@ -266,7 +270,11 @@ class OfficerProductsPage extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       '🧑‍🌾 Ahamed N. · 80kg · Rs.95/kg\n📍 Gampaha · \nToday 9:30AM',
-                      style: TextStyle(fontSize: 12, color: Colors.grey.shade600, height: 1.3),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                        height: 1.3,
+                      ),
                     ),
                   ],
                 ),
@@ -284,11 +292,19 @@ class OfficerProductsPage extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.image_outlined, color: Color(0xFF2E7D32), size: 20),
+                const Icon(
+                  Icons.image_outlined,
+                  color: Color(0xFF2E7D32),
+                  size: 20,
+                ),
                 const SizedBox(width: 8),
                 const Text(
                   'View uploaded photo',
-                  style: TextStyle(color: Color(0xFF2E7D32), fontWeight: FontWeight.bold, fontSize: 13),
+                  style: TextStyle(
+                    color: Color(0xFF2E7D32),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
                 ),
               ],
             ),
@@ -300,12 +316,24 @@ class OfficerProductsPage extends StatelessWidget {
                 child: ElevatedButton.icon(
                   onPressed: () {},
                   icon: const Icon(Icons.check, color: Colors.white, size: 16),
-                  label: const Text('Approve', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                  label: const Text(
+                    'Approve',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF2E7D32),
                     elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 8,
+                    ),
                   ),
                 ),
               ),
@@ -313,12 +341,28 @@ class OfficerProductsPage extends StatelessWidget {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () {},
-                  icon: const Icon(Icons.visibility_outlined, color: Color(0xFF6D4C41), size: 16), // Dark brown
-                  label: const Text('Review', style: TextStyle(color: Color(0xFF6D4C41), fontWeight: FontWeight.bold, fontSize: 13)),
+                  icon: const Icon(
+                    Icons.visibility_outlined,
+                    color: Color(0xFF6D4C41),
+                    size: 16,
+                  ), // Dark brown
+                  label: const Text(
+                    'Review',
+                    style: TextStyle(
+                      color: Color(0xFF6D4C41),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                  ),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Color(0xFF8D6E63)),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 8,
+                    ),
                   ),
                 ),
               ),
@@ -326,12 +370,28 @@ class OfficerProductsPage extends StatelessWidget {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () {},
-                  icon: const Icon(Icons.close, color: Color(0xFFC62828), size: 16),
-                  label: const Text('Reject', style: TextStyle(color: Color(0xFFC62828), fontWeight: FontWeight.bold, fontSize: 13)),
+                  icon: const Icon(
+                    Icons.close,
+                    color: Color(0xFFC62828),
+                    size: 16,
+                  ),
+                  label: const Text(
+                    'Reject',
+                    style: TextStyle(
+                      color: Color(0xFFC62828),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                  ),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Color(0xFFC62828)),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 8,
+                    ),
                   ),
                 ),
               ),
@@ -342,7 +402,11 @@ class OfficerProductsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildActiveProductCard({required String title, required String details, required String price}) {
+  Widget _buildActiveProductCard({
+    required String title,
+    required String details,
+    required String price,
+  }) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -367,7 +431,11 @@ class OfficerProductsPage extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -377,7 +445,11 @@ class OfficerProductsPage extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   price,
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF2E7D32)),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2E7D32),
+                  ),
                 ),
               ],
             ),

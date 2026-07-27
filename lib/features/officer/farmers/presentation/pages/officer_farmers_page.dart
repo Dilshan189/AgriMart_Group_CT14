@@ -11,6 +11,7 @@ class OfficerFarmersPage extends StatelessWidget {
         automaticallyImplyLeading: false, // Omit back button since it's a tab
         backgroundColor: const Color(0xFF8D5A36), // Brown background
         elevation: 0,
+        centerTitle: false,
         title: const Text(
           'Manage Farmers',
           style: TextStyle(
@@ -160,7 +161,10 @@ class OfficerFarmersPage extends StatelessWidget {
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.orange.shade50,
                             borderRadius: BorderRadius.circular(12),
@@ -179,7 +183,11 @@ class OfficerFarmersPage extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       'Matara District -New\nRegistration',
-                      style: TextStyle(fontSize: 12, color: Colors.grey.shade500, height: 1.2),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade500,
+                        height: 1.2,
+                      ),
                     ),
                   ],
                 ),
@@ -225,11 +233,19 @@ class OfficerFarmersPage extends StatelessWidget {
                 child: ElevatedButton.icon(
                   onPressed: () {},
                   icon: const Icon(Icons.check, color: Colors.white, size: 18),
-                  label: const Text('Approve', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  label: const Text(
+                    'Approve',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF2E7D32),
                     elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                 ),
@@ -238,11 +254,23 @@ class OfficerFarmersPage extends StatelessWidget {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () {},
-                  icon: const Icon(Icons.close, color: Color(0xFFC62828), size: 18),
-                  label: const Text('Reject', style: TextStyle(color: Color(0xFFC62828), fontWeight: FontWeight.bold)),
+                  icon: const Icon(
+                    Icons.close,
+                    color: Color(0xFFC62828),
+                    size: 18,
+                  ),
+                  label: const Text(
+                    'Reject',
+                    style: TextStyle(
+                      color: Color(0xFFC62828),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Color(0xFFC62828)),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                 ),
@@ -273,7 +301,10 @@ class OfficerFarmersPage extends StatelessWidget {
     );
   }
 
-  Widget _buildApprovedFarmerCard({required String name, required String details}) {
+  Widget _buildApprovedFarmerCard({
+    required String name,
+    required String details,
+  }) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -300,7 +331,11 @@ class OfficerFarmersPage extends StatelessWidget {
               children: [
                 Text(
                   name,
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
