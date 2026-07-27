@@ -104,11 +104,13 @@ class _RegisterPageState extends State<RegisterPage> {
                 height: 54,
                 child: ElevatedButton(
                   onPressed: () {
-                    final bool isBuyer = _selectedRoleIndex == 1;
+                    String role = 'farmer';
+                    if (_selectedRoleIndex == 1) role = 'buyer';
+                    if (_selectedRoleIndex == 2) role = 'officer';
                     Navigator.pushReplacementNamed(
                       context, 
                       AppRouter.home,
-                      arguments: isBuyer,
+                      arguments: role,
                     );
                   },
                   style: ElevatedButton.styleFrom(

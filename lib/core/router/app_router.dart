@@ -10,9 +10,9 @@ import '../../features/buyer/product/presentation/pages/buyer_place_request_page
 
 class AppRouter {
   static const String splash = '/';
-  static const String login  = '/login';
+  static const String login = '/login';
   static const String register = '/register';
-  static const String home   = '/home';
+  static const String home = '/home';
   static const String addProduct = '/addProduct';
   static const String myProducts = '/myProducts';
   static const String buyerProductDetails = '/buyerProductDetails';
@@ -27,22 +27,28 @@ class AppRouter {
       case register:
         return MaterialPageRoute(builder: (_) => const RegisterPage());
       case home:
-        final bool isBuyer = settings.arguments as bool? ?? false;
-        return MaterialPageRoute(builder: (_) => HomePage(isBuyer: isBuyer));
+        String role = 'farmer';
+        if (settings.arguments is bool) {
+          role = (settings.arguments as bool) ? 'buyer' : 'farmer';
+        } else if (settings.arguments is String) {
+          role = settings.arguments as String;
+        }
+        return MaterialPageRoute(builder: (_) => HomePage(userRole: role));
       case addProduct:
         return MaterialPageRoute(builder: (_) => const AddProductPage());
       case myProducts:
         return MaterialPageRoute(builder: (_) => const MyProductsPage());
       case buyerProductDetails:
-        return MaterialPageRoute(builder: (_) => const BuyerProductDetailsPage());
+        return MaterialPageRoute(
+          builder: (_) => const BuyerProductDetailsPage(),
+        );
       case buyerPlaceRequest:
         return MaterialPageRoute(builder: (_) => const BuyerPlaceRequestPage());
 
       default:
         return MaterialPageRoute(
-          builder: (_) => const Scaffold(
-            body: Center(child: Text('Page not found')),
-          ),
+          builder: (_) =>
+              const Scaffold(body: Center(child: Text('Page not found'))),
         );
     }
   }

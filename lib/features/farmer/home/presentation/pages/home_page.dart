@@ -8,10 +8,11 @@ import 'package:agri_mart/features/buyer/profile/presentation/pages/buyer_profil
 import 'package:agri_mart/features/buyer/browse/presentation/pages/buyer_browse_page.dart';
 import 'package:agri_mart/features/buyer/notifications/presentation/pages/buyer_notifications_page.dart';
 import 'package:agri_mart/features/buyer/orders/presentation/pages/buyer_orders_page.dart';
+import 'package:agri_mart/features/officer/home/presentation/pages/officer_dashboard_content.dart';
 
 class HomePage extends StatefulWidget {
-  final bool isBuyer;
-  const HomePage({super.key, this.isBuyer = false});
+  final String userRole;
+  const HomePage({super.key, this.userRole = 'farmer'});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -22,14 +23,23 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    PreferredSizeWidget? appBar;
+    if (_selectedIndex == 0) {
+      if (widget.userRole == 'buyer') {
+        appBar = _buildBuyerAppBar();
+      } else if (widget.userRole == 'officer') {
+        appBar = _buildOfficerAppBar();
+      } else {
+        appBar = _buildAppBar();
+      }
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9F9),
-      appBar: _selectedIndex == 0
-          ? (widget.isBuyer ? _buildBuyerAppBar() : _buildAppBar())
-          : null,
+      appBar: appBar,
       body: _buildBody(),
       bottomNavigationBar: CustomBottomNavBar(
-        isBuyer: widget.isBuyer,
+        userRole: widget.userRole,
         selectedIndex: _selectedIndex,
         onItemSelected: (index) {
           setState(() {
@@ -41,7 +51,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildBody() {
-    if (widget.isBuyer) {
+    if (widget.userRole == 'buyer') {
       switch (_selectedIndex) {
         case 0:
           return const BuyerHomeContent();
@@ -55,6 +65,21 @@ class _HomePageState extends State<HomePage> {
           return const BuyerProfilePage();
         default:
           return const BuyerHomeContent();
+      }
+    } else if (widget.userRole == 'officer') {
+      switch (_selectedIndex) {
+        case 0:
+          return const OfficerDashboardContent();
+        case 1:
+          return const Center(child: Text('Farmers (Coming Soon)'));
+        case 2:
+          return const Center(child: Text('Products (Coming Soon)'));
+        case 3:
+          return const Center(child: Text('Buyers (Coming Soon)'));
+        case 4:
+          return const Center(child: Text('Profile (Coming Soon)'));
+        default:
+          return const Center(child: Text('Officer Dashboard (Coming Soon)'));
       }
     } else {
       switch (_selectedIndex) {
@@ -238,6 +263,65 @@ class _HomePageState extends State<HomePage> {
             shape: BoxShape.circle,
           ),
           child: const Text('👤', style: TextStyle(fontSize: 20)),
+        ),
+      ],
+    );
+  }
+
+  PreferredSizeWidget _buildOfficerAppBar() {
+    return AppBar(
+      automaticallyImplyLeading: false,
+      backgroundColor: const Color(0xFF8D5A36), // Brown background
+      elevation: 0,
+      title: Row(
+        children: [
+          const Text('⚙️', style: TextStyle(fontSize: 20)),
+          const SizedBox(width: 8),
+          const Text(
+            'Officer Panel',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            Container(
+              margin: const EdgeInsets.only(right: 12),
+              padding: const EdgeInsets.all(6),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: const Text('🔔', style: TextStyle(fontSize: 18)),
+            ),
+            Positioned(
+              right: 12,
+              top: 10,
+              child: Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+          ],
+        ),
+        Container(
+          margin: const EdgeInsets.only(right: 16),
+          padding: const EdgeInsets.all(6),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+          ),
+          child: const Text('👤', style: TextStyle(fontSize: 18)),
         ),
       ],
     );

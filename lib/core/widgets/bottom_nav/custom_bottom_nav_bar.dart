@@ -1,19 +1,47 @@
 import 'package:flutter/material.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
-  final bool isBuyer;
+  final String userRole;
   final int selectedIndex;
   final ValueChanged<int> onItemSelected;
 
   const CustomBottomNavBar({
     super.key,
-    required this.isBuyer,
+    required this.userRole,
     required this.selectedIndex,
     required this.onItemSelected,
   });
 
   @override
   Widget build(BuildContext context) {
+    List<Widget> navItems = [];
+
+    if (userRole == 'buyer') {
+      navItems = [
+        _buildNavItem(context, 0, '🏠', 'Home', isActive: selectedIndex == 0),
+        _buildNavItem(context, 1, '🛍️', 'Browse', isActive: selectedIndex == 1),
+        _buildNavItem(context, 2, '🔔', 'Alert', isActive: selectedIndex == 2),
+        _buildNavItem(context, 3, '📋', 'My Orders', isActive: selectedIndex == 3),
+        _buildNavItem(context, 4, '👤', 'Profile', isActive: selectedIndex == 4),
+      ];
+    } else if (userRole == 'officer') {
+      navItems = [
+        _buildNavItem(context, 0, '🏡', 'Dashboard', isActive: selectedIndex == 0),
+        _buildNavItem(context, 1, '🧑‍🌾', 'Farmers', isActive: selectedIndex == 1),
+        _buildNavItem(context, 2, '📦', 'Products', isActive: selectedIndex == 2),
+        _buildNavItem(context, 3, '🛒', 'Buyers', isActive: selectedIndex == 3),
+        _buildNavItem(context, 4, '👤', 'Profile', isActive: selectedIndex == 4),
+      ];
+    } else { // farmer
+      navItems = [
+        _buildNavItem(context, 0, '🏠', 'Home', isActive: selectedIndex == 0),
+        _buildNavItem(context, 1, '📦', 'Product', isActive: selectedIndex == 1),
+        _buildNavItem(context, 2, '➕', 'add', isCenterIcon: true),
+        _buildNavItem(context, 3, '📋', 'Orders', isActive: selectedIndex == 3),
+        _buildNavItem(context, 4, '👤', 'Profile', isActive: selectedIndex == 4),
+      ];
+    }
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -30,21 +58,7 @@ class CustomBottomNavBar extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: isBuyer
-                ? [
-                    _buildNavItem(context, 0, '🏠', 'Home', isActive: selectedIndex == 0),
-                    _buildNavItem(context, 1, '🛍️', 'Browse', isActive: selectedIndex == 1),
-                    _buildNavItem(context, 2, '🔔', 'Alert', isActive: selectedIndex == 2),
-                    _buildNavItem(context, 3, '📋', 'My Orders', isActive: selectedIndex == 3),
-                    _buildNavItem(context, 4, '👤', 'Profile', isActive: selectedIndex == 4),
-                  ]
-                : [
-                    _buildNavItem(context, 0, '🏠', 'Home', isActive: selectedIndex == 0),
-                    _buildNavItem(context, 1, '📦', 'Product', isActive: selectedIndex == 1),
-                    _buildNavItem(context, 2, '➕', 'add', isCenterIcon: true),
-                    _buildNavItem(context, 3, '📋', 'Orders', isActive: selectedIndex == 3),
-                    _buildNavItem(context, 4, '👤', 'Profile', isActive: selectedIndex == 4),
-                  ],
+            children: navItems,
           ),
         ),
       ),
@@ -63,7 +77,7 @@ class CustomBottomNavBar extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
-        if (!isBuyer && index == 2) {
+        if (userRole == 'farmer' && index == 2) {
           // If Farmer and index is 2 (Add product)
           Navigator.pushNamed(context, '/addProduct');
         } else {
