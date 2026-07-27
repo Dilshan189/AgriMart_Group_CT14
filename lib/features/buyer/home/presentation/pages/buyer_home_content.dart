@@ -108,6 +108,7 @@ class BuyerHomeContent extends StatelessWidget {
 
           // Products List
           _buildProductCard(
+            context: context,
             name: 'Organic Spinach',
             farmer: 'Kumarasinghe',
             location: 'Colombo',
@@ -116,6 +117,7 @@ class BuyerHomeContent extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _buildProductCard(
+            context: context,
             name: 'Fresh Tomatoes',
             farmer: 'Ahamed N.',
             location: 'Gampaha',
@@ -124,6 +126,7 @@ class BuyerHomeContent extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _buildProductCard(
+            context: context,
             name: 'Carrots',
             farmer: 'Sandeepa K.',
             location: 'Kandy',
@@ -157,28 +160,33 @@ class BuyerHomeContent extends StatelessWidget {
   }
 
   Widget _buildProductCard({
+    required BuildContext context,
     required String name,
     required String farmer,
     required String location,
     required String price,
     required bool isAvailable,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Image Placeholder
+    return GestureDetector(
+      onTap: () {
+        Navigator.pushNamed(context, '/buyerProductDetails');
+      },
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              blurRadius: 5,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Image Placeholder
           Container(
             width: 60,
             height: 60,
@@ -251,6 +259,7 @@ class BuyerHomeContent extends StatelessWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }

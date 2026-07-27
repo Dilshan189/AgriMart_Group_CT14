@@ -5,6 +5,8 @@ import '../../features/comman/auth/presentation/pages/register_page.dart';
 import '../../features/farmer/home/presentation/pages/home_page.dart';
 import '../../features/farmer/product/presentation/pages/add_product_page.dart';
 import '../../features/farmer/product/presentation/pages/my_products_page.dart';
+import '../../features/buyer/product/presentation/pages/buyer_product_details_page.dart';
+import '../../features/buyer/product/presentation/pages/buyer_place_request_page.dart';
 
 class AppRouter {
   static const String splash = '/';
@@ -13,6 +15,8 @@ class AppRouter {
   static const String home   = '/home';
   static const String addProduct = '/addProduct';
   static const String myProducts = '/myProducts';
+  static const String buyerProductDetails = '/buyerProductDetails';
+  static const String buyerPlaceRequest = '/buyerPlaceRequest';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -29,6 +33,10 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const AddProductPage());
       case myProducts:
         return MaterialPageRoute(builder: (_) => const MyProductsPage());
+      case buyerProductDetails:
+        return MaterialPageRoute(builder: (_) => const BuyerProductDetailsPage());
+      case buyerPlaceRequest:
+        return MaterialPageRoute(builder: (_) => const BuyerPlaceRequestPage());
 
       default:
         return MaterialPageRoute(
