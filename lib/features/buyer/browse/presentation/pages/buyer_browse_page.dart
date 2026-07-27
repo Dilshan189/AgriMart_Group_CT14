@@ -71,6 +71,7 @@ class BuyerBrowsePage extends StatelessWidget {
 
             // Product List
             _buildProductCard(
+              context: context,
               title: 'Organic Spinach',
               details: '50 kg · Rs.120/kg · Colombo',
               farmer: '🧑‍🌾 Kumarasinghe',
@@ -81,6 +82,7 @@ class BuyerBrowsePage extends StatelessWidget {
             const SizedBox(height: 12),
 
             _buildProductCard(
+              context: context,
               title: 'Fresh Tomatoes',
               details: '80 kg · Rs.95/kg · Gampaha',
               farmer: '🧑‍🌾 Ahamed N.',
@@ -91,6 +93,7 @@ class BuyerBrowsePage extends StatelessWidget {
             const SizedBox(height: 12),
 
             _buildProductCard(
+              context: context,
               title: 'Carrots',
               details: '40 kg · Rs.85/kg · Kandy',
               farmer: '🧑‍🌾 Sandeepa K.',
@@ -101,6 +104,7 @@ class BuyerBrowsePage extends StatelessWidget {
             const SizedBox(height: 12),
 
             _buildProductCard(
+              context: context,
               title: 'Ripe Bananas',
               details: '60 kg · Rs.60/kg · Matara',
               farmer: '🧑‍🌾 Gunathilaka',
@@ -137,6 +141,7 @@ class BuyerBrowsePage extends StatelessWidget {
   }
 
   Widget _buildProductCard({
+    required BuildContext context,
     required String title,
     required String details,
     required String farmer,
@@ -144,77 +149,82 @@ class BuyerBrowsePage extends StatelessWidget {
     required Color statusColor,
     required Color statusTextColor,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade100),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Image Placeholder
-          Container(
-            width: 70,
-            height: 70,
-            decoration: BoxDecoration(
-              color: const Color(0xFFE8F5E9), // Light green tint
-              borderRadius: BorderRadius.circular(12),
+    return GestureDetector(
+      onTap: () {
+        Navigator.pushNamed(context, '/buyerProductDetails');
+      },
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.shade100),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image Placeholder
+            Container(
+              width: 70,
+              height: 70,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE8F5E9), // Light green tint
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          // Content
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: statusColor,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        status,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: statusTextColor,
+            const SizedBox(width: 12),
+            // Content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  details,
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  farmer,
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
-                ),
-              ],
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: statusColor,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          status,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: statusTextColor,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    details,
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    farmer,
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
