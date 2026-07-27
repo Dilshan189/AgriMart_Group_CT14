@@ -16,6 +16,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
+  String? _selectedRole;
 
   @override
   void dispose() {
@@ -24,7 +25,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     super.dispose();
   }
 
-  void _login() async {
+  void _login(String role) async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
@@ -45,6 +46,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       // Fetch user role and navigate
       final userModel = await ref.read(authRepositoryProvider).getCurrentUserModel();
       if (userModel != null && mounted) {
+        if (userModel.role != role) {
+          // Role mismatch
+          await ref.read(authControllerProvider.notifier).signOut();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('You are not registered as a ${role.toUpperCase()}')),
+          );
+          return;
+        }
+        
         Navigator.pushReplacementNamed(
           context, 
           AppRouter.home, 
@@ -245,29 +255,50 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 ),
               ),
               const SizedBox(height: 40),
-              // Login Button
-              SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _login,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF5A8441), // Lighter green fill
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildRoleButton(
+                      '🧑‍🌾',
+                      'Login as Farmer',
+                      isSelected: _selectedRole == 'farmer',
+                      onTap: () {
+                        setState(() {
+                          _selectedRole = 'farmer';
+                        });
+                        _login('farmer');
+                      },
                     ),
                   ),
-                  child: _isLoading 
-                      ? const CircularProgressIndicator(color: Colors.white) 
-                      : const Text(
-                          'Login',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _buildRoleButton(
+                      '🛒',
+                      'Login as Buyer',
+                      isSelected: _selectedRole == 'buyer',
+                      onTap: () {
+                        setState(() {
+                          _selectedRole = 'buyer';
+                        });
+                        _login('buyer');
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _buildRoleButton(
+                      '👨‍💼',
+                      'Login as Officer',
+                      isSelected: _selectedRole == 'officer',
+                      onTap: () {
+                        setState(() {
+                          _selectedRole = 'officer';
+                        });
+                        _login('officer');
+                      },
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 40),
               // Register Link
@@ -295,6 +326,43 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRoleButton(
+    String emoji,
+    String label, {
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF2E7D32) : Colors.grey.shade300,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Column(
+          children: [
+            Text(emoji, style: const TextStyle(fontSize: 20)),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? const Color(0xFF2E7D32) : Colors.grey.shade600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
       ),
     );
