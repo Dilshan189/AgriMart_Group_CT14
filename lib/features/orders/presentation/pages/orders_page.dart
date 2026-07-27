@@ -63,11 +63,17 @@ class _OrdersPageState extends State<OrdersPage> {
   List<OrderItem> get _filtered {
     switch (_filterIndex) {
       case 1:
-        return _allOrders.where((o) => o.status == OrderStatus.newRequest).toList();
+        return _allOrders
+            .where((o) => o.status == OrderStatus.newRequest)
+            .toList();
       case 2:
-        return _allOrders.where((o) => o.status == OrderStatus.accepted).toList();
+        return _allOrders
+            .where((o) => o.status == OrderStatus.accepted)
+            .toList();
       case 3:
-        return _allOrders.where((o) => o.status == OrderStatus.rejected).toList();
+        return _allOrders
+            .where((o) => o.status == OrderStatus.rejected)
+            .toList();
       default:
         return _allOrders;
     }
@@ -98,28 +104,7 @@ class _OrdersPageState extends State<OrdersPage> {
     return AppBar(
       backgroundColor: _green,
       elevation: 0,
-      centerTitle: true,
-      leading: Padding(
-        padding: const EdgeInsets.only(left: 12.0),
-        child: Center(
-          child: Container(
-            width: 36,
-            height: 36,
-            decoration: const BoxDecoration(
-              color: Color(0xFFF0F4EF), // Light background for circle
-              shape: BoxShape.circle,
-            ),
-            child: IconButton(
-              padding: EdgeInsets.zero,
-              icon: const Icon(Icons.arrow_back, color: Colors.black, size: 20),
-              onPressed: () {
-                // Embedded in bottom navigation, popping here might not make sense unless manually handled,
-                // but we provide the visual button as in design.
-              },
-            ),
-          ),
-        ),
-      ),
+      centerTitle: false,
       title: const Text(
         'Buyer Requests',
         style: TextStyle(
@@ -228,7 +213,10 @@ class _OrdersPageState extends State<OrdersPage> {
                   children: [
                     RichText(
                       text: TextSpan(
-                        style: const TextStyle(fontSize: 14, color: Colors.black87),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.black87,
+                        ),
                         children: [
                           const TextSpan(text: 'Request: '),
                           TextSpan(
@@ -241,17 +229,26 @@ class _OrdersPageState extends State<OrdersPage> {
                     const SizedBox(height: 4),
                     Text(
                       'Buyer: ${order.buyer}',
-                      style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade600,
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       'Quantity: ${order.quantity}',
-                      style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade600,
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       'Requested: ${order.requestedAt}',
-                      style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade600,
+                      ),
                     ),
                   ],
                 ),
@@ -266,7 +263,11 @@ class _OrdersPageState extends State<OrdersPage> {
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: () {},
-                    icon: const Icon(Icons.check, color: Colors.black54, size: 20),
+                    icon: const Icon(
+                      Icons.check,
+                      color: Colors.black54,
+                      size: 20,
+                    ),
                     label: const Text(
                       'Accept',
                       style: TextStyle(
@@ -289,7 +290,11 @@ class _OrdersPageState extends State<OrdersPage> {
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: () {},
-                    icon: const Icon(Icons.close, color: Colors.redAccent, size: 20),
+                    icon: const Icon(
+                      Icons.close,
+                      color: Colors.redAccent,
+                      size: 20,
+                    ),
                     label: const Text(
                       'Reject',
                       style: TextStyle(
@@ -310,7 +315,7 @@ class _OrdersPageState extends State<OrdersPage> {
                 ),
               ],
             ),
-          ]
+          ],
         ],
       ),
     );

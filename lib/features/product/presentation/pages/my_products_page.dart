@@ -134,25 +134,8 @@ class _MyProductsPageState extends State<MyProductsPage> {
     return AppBar(
       backgroundColor: _green,
       elevation: 0,
-      centerTitle: true,
-      leading: Padding(
-        padding: const EdgeInsets.only(left: 12.0),
-        child: Center(
-          child: Container(
-            width: 36,
-            height: 36,
-            decoration: const BoxDecoration(
-              color: Color(0xFFF0F4EF), // Light background for circle
-              shape: BoxShape.circle,
-            ),
-            child: IconButton(
-              padding: EdgeInsets.zero,
-              icon: const Icon(Icons.arrow_back, color: Colors.black, size: 20),
-              onPressed: () {},
-            ),
-          ),
-        ),
-      ),
+      automaticallyImplyLeading: false,
+      centerTitle: false,
       title: const Text(
         'My Products',
         style: TextStyle(
