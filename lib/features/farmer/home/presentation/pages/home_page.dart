@@ -6,6 +6,8 @@ import 'package:agri_mart/features/farmer/profile/presentation/pages/profile_pag
 import 'package:agri_mart/features/buyer/home/presentation/pages/buyer_home_content.dart';
 import 'package:agri_mart/features/buyer/profile/presentation/pages/buyer_profile_page.dart';
 import 'package:agri_mart/features/buyer/browse/presentation/pages/buyer_browse_page.dart';
+import 'package:agri_mart/features/buyer/notifications/presentation/pages/buyer_notifications_page.dart';
+import 'package:agri_mart/features/buyer/orders/presentation/pages/buyer_orders_page.dart';
 
 class HomePage extends StatefulWidget {
   final bool isBuyer;
@@ -46,9 +48,9 @@ class _HomePageState extends State<HomePage> {
         case 1:
           return const BuyerBrowsePage();
         case 2:
-          return const Center(child: Text('Alerts Page (Coming Soon)'));
+          return const BuyerNotificationsPage();
         case 3:
-          return const OrdersPage(); // or BuyerOrdersPage later
+          return const BuyerOrdersPage();
         case 4:
           return const BuyerProfilePage();
         default:

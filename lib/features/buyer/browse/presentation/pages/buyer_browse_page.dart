@@ -8,21 +8,10 @@ class BuyerBrowsePage extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9F9),
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.arrow_back, color: Colors.black, size: 20),
-          ),
-          onPressed: () {
-            // Since it's in a bottom nav, back might not make sense, but keeping it for UI accuracy
-          },
-        ),
+        centerTitle: false,
         title: const Text(
           'All Products',
           style: TextStyle(
@@ -76,10 +65,7 @@ class BuyerBrowsePage extends StatelessWidget {
             // Result count
             Text(
               'Showing 12 products near you',
-              style: TextStyle(
-                color: Colors.grey.shade500,
-                fontSize: 13,
-              ),
+              style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
             ),
             const SizedBox(height: 16),
 
@@ -93,7 +79,7 @@ class BuyerBrowsePage extends StatelessWidget {
               statusTextColor: const Color(0xFF2E7D32),
             ),
             const SizedBox(height: 12),
-            
+
             _buildProductCard(
               title: 'Fresh Tomatoes',
               details: '80 kg · Rs.95/kg · Gampaha',
@@ -103,7 +89,7 @@ class BuyerBrowsePage extends StatelessWidget {
               statusTextColor: const Color(0xFF2E7D32),
             ),
             const SizedBox(height: 12),
-            
+
             _buildProductCard(
               title: 'Carrots',
               details: '40 kg · Rs.85/kg · Kandy',
@@ -196,7 +182,10 @@ class BuyerBrowsePage extends StatelessWidget {
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: statusColor,
                         borderRadius: BorderRadius.circular(12),
@@ -215,18 +204,12 @@ class BuyerBrowsePage extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   details,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade500,
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   farmer,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade700,
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
                 ),
               ],
             ),
