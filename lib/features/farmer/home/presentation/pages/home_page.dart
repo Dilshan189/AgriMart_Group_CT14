@@ -1,4 +1,5 @@
 import 'package:agri_mart/features/farmer/product/presentation/pages/my_products_page.dart';
+import 'package:agri_mart/features/officer/home/presentation/pages/officer_dashboard_content.dart';
 import 'package:flutter/material.dart';
 import 'package:agri_mart/core/widgets/bottom_nav/custom_bottom_nav_bar.dart';
 import 'package:agri_mart/features/farmer/orders/presentation/pages/orders_page.dart';
@@ -8,7 +9,10 @@ import 'package:agri_mart/features/buyer/profile/presentation/pages/buyer_profil
 import 'package:agri_mart/features/buyer/browse/presentation/pages/buyer_browse_page.dart';
 import 'package:agri_mart/features/buyer/notifications/presentation/pages/buyer_notifications_page.dart';
 import 'package:agri_mart/features/buyer/orders/presentation/pages/buyer_orders_page.dart';
-import 'package:agri_mart/features/officer/home/presentation/pages/officer_dashboard_content.dart';
+import 'package:agri_mart/features/officer/farmers/presentation/pages/officer_farmers_page.dart';
+import 'package:agri_mart/features/officer/products/presentation/pages/officer_products_page.dart';
+import 'package:agri_mart/features/officer/buyers/presentation/pages/officer_buyers_page.dart';
+import 'package:agri_mart/features/officer/profile/presentation/pages/officer_profile_page.dart';
 
 class HomePage extends StatefulWidget {
   final String userRole;
@@ -71,15 +75,15 @@ class _HomePageState extends State<HomePage> {
         case 0:
           return const OfficerDashboardContent();
         case 1:
-          return const Center(child: Text('Farmers (Coming Soon)'));
+          return const OfficerFarmersPage();
         case 2:
-          return const Center(child: Text('Products (Coming Soon)'));
+          return const OfficerProductsPage();
         case 3:
-          return const Center(child: Text('Buyers (Coming Soon)'));
+          return const OfficerBuyersPage();
         case 4:
-          return const Center(child: Text('Profile (Coming Soon)'));
+          return const OfficerProfilePage();
         default:
-          return const Center(child: Text('Officer Dashboard (Coming Soon)'));
+          return const OfficerDashboardContent();
       }
     } else {
       switch (_selectedIndex) {
