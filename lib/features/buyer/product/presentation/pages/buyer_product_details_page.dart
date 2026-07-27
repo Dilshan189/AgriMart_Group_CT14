@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:dotted_border/dotted_border.dart';
+import '../../../../../core/models/product_model.dart';
+import '../../../../../core/router/app_router.dart';
 
 class BuyerProductDetailsPage extends StatelessWidget {
-  const BuyerProductDetailsPage({super.key});
+  final ProductModel product;
+
+  const BuyerProductDetailsPage({
+    super.key,
+    required this.product,
+  });
 
   @override
   Widget build(BuildContext context) {
+    bool isAvailable = product.status == 'active';
+    
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -31,17 +39,6 @@ class BuyerProductDetailsPage extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade200,
-              shape: BoxShape.circle,
-            ),
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -64,10 +61,10 @@ class BuyerProductDetailsPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Organic Spinach',
-                    style: TextStyle(
+                    product.name,
+                    style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
@@ -77,15 +74,15 @@ class BuyerProductDetailsPage extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEDF5E1),
+                    color: isAvailable ? const Color(0xFFEDF5E1) : const Color(0xFFFFF3E0),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Text(
-                    'Available',
+                  child: Text(
+                    isAvailable ? 'Available' : 'Unavailable',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF2E7D32),
+                      color: isAvailable ? const Color(0xFF2E7D32) : const Color(0xFFE65100),
                     ),
                   ),
                 ),
@@ -94,131 +91,77 @@ class BuyerProductDetailsPage extends StatelessWidget {
             const SizedBox(height: 4),
             
             // Price
-            const Text(
-              'Rs. 120 / kg',
-              style: TextStyle(
+            Text(
+              'Rs. ${product.price} / ${product.unit}',
+              style: const TextStyle(
                 fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF2E7D32),
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF2E5E16),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
+            const Divider(color: Color(0xFFEEEEEE), thickness: 1),
+            const SizedBox(height: 16),
 
-            // 4 Info Boxes
+            // Farmer Info
             Row(
               children: [
-                Expanded(child: _buildInfoBox('Category', '🥦 Vegetables')),
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Center(
+                    child: Text('🧑‍🌾', style: TextStyle(fontSize: 24)),
+                  ),
+                ),
                 const SizedBox(width: 12),
-                Expanded(child: _buildInfoBox('Available', '50 kg', icon: null)),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        product.farmerName,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          const Icon(Icons.location_on, size: 14, color: Colors.grey),
+                          const SizedBox(width: 4),
+                          Text(
+                            product.location,
+                            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.message, color: Color(0xFF2E5E16)),
+                  onPressed: () {},
+                ),
               ],
             ),
-            const SizedBox(height: 12),
+            
+            const SizedBox(height: 16),
+            const Divider(color: Color(0xFFEEEEEE), thickness: 1),
+            const SizedBox(height: 16),
+
+            // Product Details Grid
             Row(
               children: [
-                Expanded(child: _buildInfoBox('Location', '📍 Colombo')),
+                Expanded(child: _buildDetailCard('Category', product.category, '🥦')),
                 const SizedBox(width: 12),
-                Expanded(child: _buildInfoBox('Posted', 'Today', icon: null)),
+                Expanded(child: _buildDetailCard('Stock', '${product.quantity} ${product.unit}', '📦')),
               ],
-            ),
-            const SizedBox(height: 24),
-
-            // Farmer Profile Box
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF9F9F9),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade300),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 50,
-                    height: 50,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFC5E1A5),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Center(
-                      child: Text('🧑‍🌾', style: TextStyle(fontSize: 24)),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Kumarasinghe\nK.M.B.S.S',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                            height: 1.2,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          'Verified Farmer · Colombo\nDistrict',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey,
-                            height: 1.3,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEDF5E1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text(
-                      'Verified',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF2E7D32),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Location Dotted Box
-            DottedBorder(
-              options: RoundedRectDottedBorderOptions(
-                color: const Color(0xFF81C784),
-                strokeWidth: 1.5,
-                dashPattern: const [6, 4],
-                radius: const Radius.circular(12),
-              ),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF1F8E9),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Column(
-                  children: [
-                    Icon(Icons.location_on, color: Colors.black87),
-                    SizedBox(height: 8),
-                    Text(
-                      'Colombo District, Sri Lanka',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.black87,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             ),
             const SizedBox(height: 24),
 
@@ -227,107 +170,89 @@ class BuyerProductDetailsPage extends StatelessWidget {
               'Description',
               style: TextStyle(
                 fontSize: 16,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.bold,
                 color: Colors.black87,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Fresh organic spinach harvested this morning. No pesticides used. Available for pickup from the farm or delivery on request.',
+            Text(
+              product.description.isNotEmpty ? product.description : 'No description provided.',
               style: TextStyle(
-                fontSize: 13,
-                color: Colors.black54,
+                fontSize: 14,
                 height: 1.5,
+                color: Colors.grey.shade700,
               ),
             ),
-            const SizedBox(height: 100), // spacing for bottom bar
-          ],
-        ),
-      ),
-      bottomSheet: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              offset: const Offset(0, -4),
-              blurRadius: 10,
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              flex: 1,
-              child: OutlinedButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.phone_outlined, size: 20, color: Colors.black87),
-                label: const Text(
-                  'Contact',
-                  style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
-                ),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  side: const BorderSide(color: Colors.black87, width: 1),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              flex: 1,
-              child: ElevatedButton.icon(
+            const SizedBox(height: 40),
+
+            // Request Action Button
+            SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: ElevatedButton(
                 onPressed: () {
-                  Navigator.pushNamed(context, '/buyerPlaceRequest');
+                  Navigator.pushNamed(
+                    context, 
+                    AppRouter.buyerPlaceRequest,
+                    arguments: product,
+                  );
                 },
-                icon: const Icon(Icons.shopping_cart_outlined, size: 20, color: Colors.white),
-                label: const Text(
-                  'Request to Buy',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2E7D32),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  elevation: 0,
+                  backgroundColor: const Color(0xFF2E5E16),
+                  foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                ),
+                child: const Text(
+                  'Place Request',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
             ),
+            const SizedBox(height: 24),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildInfoBox(String title, String value, {IconData? icon}) {
+  Widget _buildDetailCard(String title, String value, String emoji) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
-        borderRadius: BorderRadius.circular(8),
+        color: const Color(0xFFF9F9F9),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey.shade500,
-            ),
+          Row(
+            children: [
+              Text(emoji, style: const TextStyle(fontSize: 16)),
+              const SizedBox(width: 6),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey.shade500,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           Text(
             value,
             style: const TextStyle(
-              fontSize: 13,
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
               color: Colors.black87,
-              fontWeight: FontWeight.w500,
             ),
           ),
         ],

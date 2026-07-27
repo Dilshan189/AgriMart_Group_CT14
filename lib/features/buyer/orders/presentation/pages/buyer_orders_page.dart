@@ -1,10 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import '../../../../../core/providers/request_provider.dart';
+import '../../../../../core/models/request_model.dart';
 
-class BuyerOrdersPage extends StatelessWidget {
+class BuyerOrdersPage extends ConsumerStatefulWidget {
   const BuyerOrdersPage({super.key});
 
   @override
+  ConsumerState<BuyerOrdersPage> createState() => _BuyerOrdersPageState();
+}
+
+class _BuyerOrdersPageState extends ConsumerState<BuyerOrdersPage> {
+  String _selectedFilter = 'ALL';
+
+  @override
   Widget build(BuildContext context) {
+    final requestsAsync = ref.watch(buyerRequestsProvider);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9F9),
       appBar: AppBar(
@@ -20,154 +33,173 @@ class BuyerOrdersPage extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        actions: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.only(right: 16.0),
-              child: Text(
-                '24 Total',
-                style: TextStyle(
-                  color: Colors.blue.shade700,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ),
-        ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Filter Chips
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  _buildFilterChip('ALL(4)', isSelected: true),
-                  const SizedBox(width: 8),
-                  _buildFilterChip('Pending (1)'),
-                  const SizedBox(width: 8),
-                  _buildFilterChip('Accepted (2)'),
-                  const SizedBox(width: 8),
-                  _buildFilterChip('Rejected (1)'),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
+      body: requestsAsync.when(
+        data: (allRequests) {
+          int total = allRequests.length;
+          int pending = allRequests.where((r) => r.status == 'pending').length;
+          int accepted = allRequests.where((r) => r.status == 'accepted').length;
+          int rejected = allRequests.where((r) => r.status == 'rejected').length;
 
-            // Stat Cards Row
-            Row(
+          List<RequestModel> filteredRequests = allRequests.where((r) {
+            if (_selectedFilter == 'ALL') return true;
+            return r.status.toLowerCase() == _selectedFilter.toLowerCase();
+          }).toList();
+          
+          filteredRequests.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: _buildStatCard(
-                    '4',
-                    'Total',
-                    bgColor: Colors.blue.shade50,
-                    borderColor: Colors.blue.shade200,
-                    textColor: Colors.blue.shade700,
+                // Filter Chips
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildFilterChip('ALL', total),
+                      const SizedBox(width: 8),
+                      _buildFilterChip('Pending', pending),
+                      const SizedBox(width: 8),
+                      _buildFilterChip('Accepted', accepted),
+                      const SizedBox(width: 8),
+                      _buildFilterChip('Rejected', rejected),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildStatCard(
-                    '2',
-                    'Accepted',
-                    bgColor: const Color(0xFFEDF5E1),
-                    borderColor: const Color(0xFFC5E1A5),
-                    textColor: const Color(0xFF2E7D32),
-                  ),
+                const SizedBox(height: 20),
+
+                // Stat Cards Row
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatCard(
+                        '$total',
+                        'Total',
+                        bgColor: Colors.blue.shade50,
+                        borderColor: Colors.blue.shade200,
+                        textColor: Colors.blue.shade700,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildStatCard(
+                        '$accepted',
+                        'Accepted',
+                        bgColor: const Color(0xFFEDF5E1),
+                        borderColor: const Color(0xFFC5E1A5),
+                        textColor: const Color(0xFF2E7D32),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildStatCard(
+                        '$pending',
+                        'Pending',
+                        bgColor: Colors.orange.shade50,
+                        borderColor: Colors.orange.shade200,
+                        textColor: Colors.orange.shade800,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildStatCard(
-                    '1',
-                    'Pending',
-                    bgColor: Colors.orange.shade50,
-                    borderColor: Colors.orange.shade200,
-                    textColor: Colors.orange.shade800,
-                  ),
-                ),
+                const SizedBox(height: 24),
+
+                if (filteredRequests.isEmpty)
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 40.0),
+                      child: Text('No orders found.'),
+                    ),
+                  )
+                else ...[
+                  if (_selectedFilter == 'ALL' || _selectedFilter == 'Pending') ...[
+                    // Pending Section
+                    Text(
+                      'Pending',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.blue.shade700,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ...filteredRequests
+                        .where((r) => r.status == 'pending')
+                        .map((r) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12.0),
+                              child: _buildPendingOrderCard(r),
+                            ))
+                        .toList(),
+                    if (filteredRequests.any((r) => r.status == 'pending'))
+                      const SizedBox(height: 12),
+                  ],
+
+                  if (_selectedFilter == 'ALL' || _selectedFilter != 'Pending') ...[
+                    // Previous Orders Section
+                    const Text(
+                      'Previous Orders',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ...filteredRequests
+                        .where((r) => r.status != 'pending')
+                        .map((r) {
+                      final isRejected = r.status == 'rejected';
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: _buildPreviousOrderCard(
+                          title: '${r.productName} — ${r.quantity.toStringAsFixed(0)} kg',
+                          farmer: '🧑‍🌾 ${r.farmerName} · Rs. ${r.totalPrice.toStringAsFixed(0)}',
+                          time: DateFormat('MMM d, yyyy h:mm a').format(r.createdAt),
+                          status: isRejected ? 'Rejected' : 'Accepted',
+                          statusColor: isRejected ? Colors.red.shade50 : const Color(0xFFEDF5E1),
+                          statusTextColor: isRejected ? Colors.red.shade300 : const Color(0xFF2E7D32),
+                          isFaded: isRejected,
+                        ),
+                      );
+                    }).toList(),
+                  ],
+                ],
               ],
             ),
-            const SizedBox(height: 24),
-
-            // Pending Section
-            Text(
-              'Pending',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.blue.shade700,
-              ),
-            ),
-            const SizedBox(height: 12),
-            _buildPendingOrderCard(),
-
-            const SizedBox(height: 24),
-
-            // Previous Orders Section
-            const Text(
-              'Previous Orders',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 12),
-            _buildPreviousOrderCard(
-              title: 'Fresh Tomatoes — 30 kg',
-              farmer: '🧑‍🌾 Ahamed N. · Rs. 2,850',
-              time: 'Yesterday',
-              status: 'Accepted',
-              statusColor: const Color(0xFFEDF5E1),
-              statusTextColor: const Color(0xFF2E7D32),
-            ),
-            const SizedBox(height: 12),
-            _buildPreviousOrderCard(
-              title: 'Organic Rice — 10 kg',
-              farmer: '🧑‍🌾 Sandeepa K. · Rs. 1,800',
-              time: '3 days ago',
-              status: 'Accepted',
-              statusColor: const Color(0xFFEDF5E1),
-              statusTextColor: const Color(0xFF2E7D32),
-            ),
-            const SizedBox(height: 12),
-            _buildPreviousOrderCard(
-              title: 'Carrots — 50 kg',
-              farmer: '🧑‍🌾 Sandeepa K.',
-              time: '5 days ago',
-              status: 'Rejected',
-              statusColor: Colors.red.shade50,
-              statusTextColor: Colors.red.shade300, // faded
-              isFaded: true,
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text('Error: $err')),
       ),
     );
   }
 
-  Widget _buildFilterChip(String label, {bool isSelected = false}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: isSelected ? Colors.blue.shade50 : Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isSelected ? Colors.blue.shade200 : Colors.grey.shade300,
+  Widget _buildFilterChip(String label, int count) {
+    bool isSelected = _selectedFilter == label;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedFilter = label;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.blue.shade50 : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? Colors.blue.shade200 : Colors.grey.shade300,
+          ),
         ),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: isSelected ? Colors.blue.shade700 : Colors.grey.shade400,
-          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-          fontSize: 13,
+        child: Text(
+          '$label($count)',
+          style: TextStyle(
+            color: isSelected ? Colors.blue.shade700 : Colors.grey.shade400,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            fontSize: 13,
+          ),
         ),
       ),
     );
@@ -211,7 +243,10 @@ class BuyerOrdersPage extends StatelessWidget {
     );
   }
 
-  Widget _buildPendingOrderCard() {
+  Widget _buildPendingOrderCard(RequestModel request) {
+    String deliveryMethod = request.deliveryType == 'pickup' ? 'Pickup from farm' : 'Request delivery';
+    String timeAgo = DateFormat('MMM d, h:mm a').format(request.createdAt);
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -241,9 +276,9 @@ class BuyerOrdersPage extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'Organic Spinach',
-                          style: TextStyle(
+                        Text(
+                          request.productName,
+                          style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
                             color: Colors.black87,
@@ -271,7 +306,7 @@ class BuyerOrdersPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '🧑‍🌾 Kumarasinghe · 20 kg',
+                      '🧑‍🌾 ${request.farmerName} · ${request.quantity.toStringAsFixed(0)} kg',
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey.shade600,
@@ -279,7 +314,7 @@ class BuyerOrdersPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Rs. 2,400',
+                      'Rs. ${request.totalPrice.toStringAsFixed(0)}',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -293,7 +328,7 @@ class BuyerOrdersPage extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Requested: Today · Pickup from farm',
+            'Requested: $timeAgo · $deliveryMethod',
             style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
           ),
           const SizedBox(height: 10),

@@ -1,17 +1,98 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../../core/models/product_model.dart';
+import '../../../../../core/models/request_model.dart';
+import '../../../../../core/providers/request_provider.dart';
+import '../../../../../core/providers/auth_provider.dart';
 
-class BuyerPlaceRequestPage extends StatefulWidget {
-  const BuyerPlaceRequestPage({super.key});
+class BuyerPlaceRequestPage extends ConsumerStatefulWidget {
+  final ProductModel product;
+
+  const BuyerPlaceRequestPage({
+    super.key,
+    required this.product,
+  });
 
   @override
-  State<BuyerPlaceRequestPage> createState() => _BuyerPlaceRequestPageState();
+  ConsumerState<BuyerPlaceRequestPage> createState() => _BuyerPlaceRequestPageState();
 }
 
-class _BuyerPlaceRequestPageState extends State<BuyerPlaceRequestPage> {
-  int _quantity = 20;
-  final int _maxQuantity = 50;
-  final int _unitPrice = 120;
+class _BuyerPlaceRequestPageState extends ConsumerState<BuyerPlaceRequestPage> {
+  late double _quantity;
+  late double _maxQuantity;
+  late double _unitPrice;
   bool _isPickup = true; // true for pickup, false for delivery
+  final TextEditingController _noteController = TextEditingController();
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _maxQuantity = widget.product.quantity;
+    _quantity = _maxQuantity > 0 ? (_maxQuantity >= 10 ? 10 : 1) : 0;
+    _unitPrice = widget.product.price;
+  }
+
+  @override
+  void dispose() {
+    _noteController.dispose();
+    super.dispose();
+  }
+
+  void _submitRequest() async {
+    if (_quantity <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invalid quantity')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final user = await ref.read(authRepositoryProvider).getCurrentUserModel();
+      if (user == null) throw Exception('User not logged in');
+
+      final request = RequestModel(
+        id: '',
+        productId: widget.product.id,
+        productName: widget.product.name,
+        buyerId: user.id,
+        buyerName: user.name,
+        farmerId: widget.product.farmerId,
+        farmerName: widget.product.farmerName,
+        quantity: _quantity,
+        totalPrice: _quantity * _unitPrice,
+        status: 'pending',
+        deliveryType: _isPickup ? 'pickup' : 'delivery',
+        note: _noteController.text.trim(),
+        createdAt: DateTime.now(),
+      );
+
+      await ref.read(requestControllerProvider.notifier).submitRequest(request);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Request placed successfully!')),
+        );
+        Navigator.pop(context); // Go back to product details
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,9 +131,9 @@ class _BuyerPlaceRequestPageState extends State<BuyerPlaceRequestPage> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFFF1F8E9), // Light green tint
+                color: const Color(0xFFF1F8E9), 
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFA5D6A7), width: 1), // Green border
+                border: Border.all(color: const Color(0xFFA5D6A7), width: 1), 
               ),
               child: Row(
                 children: [
@@ -72,9 +153,9 @@ class _BuyerPlaceRequestPageState extends State<BuyerPlaceRequestPage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
-                              'Organic Spinach',
-                              style: TextStyle(
+                            Text(
+                              widget.product.name,
+                              style: const TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black87,
@@ -100,7 +181,7 @@ class _BuyerPlaceRequestPageState extends State<BuyerPlaceRequestPage> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Rs. 120/kg · Max\n50kg available',
+                          'Rs. ${widget.product.price}/${widget.product.unit} · Max\n${widget.product.quantity}${widget.product.unit} available',
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey.shade600,
@@ -120,14 +201,14 @@ class _BuyerPlaceRequestPageState extends State<BuyerPlaceRequestPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Required Quantity (kg)',
+                  'Required Quantity (${widget.product.unit})',
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.grey.shade700,
                   ),
                 ),
                 Text(
-                  'Max: $_maxQuantity kg',
+                  'Max: $_maxQuantity ${widget.product.unit}',
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey.shade500,
@@ -163,7 +244,7 @@ class _BuyerPlaceRequestPageState extends State<BuyerPlaceRequestPage> {
                     width: 60,
                     alignment: Alignment.center,
                     child: Text(
-                      '$_quantity',
+                      _quantity.toStringAsFixed(0),
                       style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   ),
@@ -200,7 +281,7 @@ class _BuyerPlaceRequestPageState extends State<BuyerPlaceRequestPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text('Unit price', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
-                      Text('Rs. $_unitPrice / kg', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                      Text('Rs. $_unitPrice / ${widget.product.unit}', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -208,7 +289,7 @@ class _BuyerPlaceRequestPageState extends State<BuyerPlaceRequestPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text('Quantity', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
-                      Text('$_quantity kg', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                      Text('$_quantity ${widget.product.unit}', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
                     ],
                   ),
                   const SizedBox(height: 12),
@@ -226,7 +307,7 @@ class _BuyerPlaceRequestPageState extends State<BuyerPlaceRequestPage> {
                         ),
                       ),
                       Text(
-                        'Rs. ${_unitPrice * _quantity}',
+                        'Rs. ${(_unitPrice * _quantity).toStringAsFixed(2)}',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -324,6 +405,7 @@ class _BuyerPlaceRequestPageState extends State<BuyerPlaceRequestPage> {
             ),
             const SizedBox(height: 12),
             TextField(
+              controller: _noteController,
               maxLines: 3,
               decoration: InputDecoration(
                 hintText: 'Any special requirements...',
@@ -352,14 +434,13 @@ class _BuyerPlaceRequestPageState extends State<BuyerPlaceRequestPage> {
               width: double.infinity,
               height: 54,
               child: ElevatedButton.icon(
-                onPressed: () {
-                  // Usually show a success dialog or go to My Orders
-                  Navigator.pop(context);
-                },
-                icon: const Icon(Icons.check, color: Colors.white, size: 20),
-                label: const Text(
-                  'Submit Request',
-                  style: TextStyle(
+                onPressed: _isLoading ? null : _submitRequest,
+                icon: _isLoading 
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Icon(Icons.check, color: Colors.white, size: 20),
+                label: Text(
+                  _isLoading ? 'Submitting...' : 'Submit Request',
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,

@@ -1,18 +1,104 @@
-
 import 'package:flutter/material.dart';
 import 'package:dotted_border/dotted_border.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../../core/providers/product_provider.dart';
+import '../../../../../core/providers/auth_provider.dart';
+import '../../../../../core/models/product_model.dart';
 
-class AddProductPage extends StatefulWidget {
+class AddProductPage extends ConsumerStatefulWidget {
   const AddProductPage({super.key});
 
   @override
-  State<AddProductPage> createState() => _AddProductPageState();
+  ConsumerState<AddProductPage> createState() => _AddProductPageState();
 }
 
-class _AddProductPageState extends State<AddProductPage> {
+class _AddProductPageState extends ConsumerState<AddProductPage> {
   final Color primaryGreen = const Color(0xFF387015);
   final Color backgroundGrey = const Color(0xFFF9F9F9);
-  
+
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _categoryController = TextEditingController();
+  final TextEditingController _quantityController = TextEditingController();
+  final TextEditingController _priceController = TextEditingController();
+  final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _categoryController.dispose();
+    _quantityController.dispose();
+    _priceController.dispose();
+    _locationController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  void _submitProduct() async {
+    final name = _nameController.text.trim();
+    final category = _categoryController.text.trim();
+    final quantityText = _quantityController.text.trim();
+    final priceText = _priceController.text.trim();
+    final location = _locationController.text.trim();
+    final description = _descriptionController.text.trim();
+
+    if (name.isEmpty || category.isEmpty || quantityText.isEmpty || priceText.isEmpty || location.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill all required fields')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final user = await ref.read(authRepositoryProvider).getCurrentUserModel();
+      if (user == null) {
+        throw Exception('User not logged in');
+      }
+
+      final product = ProductModel(
+        id: '', // Firestore auto-generates this if we use doc().set() in repo
+        farmerId: user.id,
+        farmerName: user.name,
+        name: name,
+        category: category,
+        quantity: double.tryParse(quantityText) ?? 0,
+        unit: 'kg',
+        location: location,
+        description: description,
+        price: double.tryParse(priceText) ?? 0,
+        createdAt: DateTime.now(),
+        status: 'active', // default status
+      );
+
+      await ref.read(productControllerProvider.notifier).addProduct(product);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Product added successfully!')),
+        );
+        Navigator.pop(context); // Go back after adding
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -29,7 +115,7 @@ class _AddProductPageState extends State<AddProductPage> {
             ),
             child: const Icon(Icons.arrow_back, color: Colors.black, size: 18),
           ),
-          onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false),
+          onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Add Product',
@@ -47,11 +133,11 @@ class _AddProductPageState extends State<AddProductPage> {
           children: [
             _buildImageUploadBox(),
             const SizedBox(height: 16),
-            _buildLabel('Product Name'),
-            _buildTextField(hintText: 'e.g Organic Tomatoes', prefixIcon: '🌿'),
+            _buildLabel('Product Name *'),
+            _buildTextField(controller: _nameController, hintText: 'e.g Organic Tomatoes', prefixIcon: '🌿'),
             const SizedBox(height: 16),
-            _buildLabel('Category'),
-            _buildTextField(hintText: 'Vegetables', prefixIcon: '🥦'),
+            _buildLabel('Category *'),
+            _buildTextField(controller: _categoryController, hintText: 'Vegetables', prefixIcon: '🥦'),
             const SizedBox(height: 16),
             Row(
               children: [
@@ -59,8 +145,8 @@ class _AddProductPageState extends State<AddProductPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildLabel('Quantity (kg)'),
-                      _buildTextField(hintText: 'e.g. 100'),
+                      _buildLabel('Quantity (kg) *'),
+                      _buildTextField(controller: _quantityController, hintText: 'e.g. 100', keyboardType: TextInputType.number),
                     ],
                   ),
                 ),
@@ -69,21 +155,22 @@ class _AddProductPageState extends State<AddProductPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildLabel('Price (Rs/kg)'),
-                      _buildTextField(hintText: 'e.g. 120'),
+                      _buildLabel('Price (Rs/kg) *'),
+                      _buildTextField(controller: _priceController, hintText: 'e.g. 120', keyboardType: TextInputType.number),
                     ],
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            _buildLabel('Location (GPS)'),
+            _buildLabel('Location (GPS) *'),
             _buildCurrentLocationBox(),
             const SizedBox(height: 8),
-            _buildTextField(hintText: 'Or enter location manually'),
+            _buildTextField(controller: _locationController, hintText: 'Or enter location manually'),
             const SizedBox(height: 16),
             _buildLabel('Description (optional)'),
             _buildTextField(
+              controller: _descriptionController,
               hintText: 'Describe your product...',
               maxLines: 4,
             ),
@@ -92,21 +179,23 @@ class _AddProductPageState extends State<AddProductPage> {
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: _isLoading ? null : _submitProduct,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primaryGreen,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Text(
-                  'Submit Product',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                child: _isLoading 
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text(
+                        'Submit Product',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
               ),
             ),
             const SizedBox(height: 24),
@@ -130,7 +219,13 @@ class _AddProductPageState extends State<AddProductPage> {
     );
   }
 
-  Widget _buildTextField({String? hintText, String? prefixIcon, int maxLines = 1}) {
+  Widget _buildTextField({
+    required TextEditingController controller, 
+    String? hintText, 
+    String? prefixIcon, 
+    int maxLines = 1,
+    TextInputType? keyboardType,
+  }) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -138,7 +233,9 @@ class _AddProductPageState extends State<AddProductPage> {
         border: Border.all(color: Colors.grey.shade300),
       ),
       child: TextField(
+        controller: controller,
         maxLines: maxLines,
+        keyboardType: keyboardType,
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 14),

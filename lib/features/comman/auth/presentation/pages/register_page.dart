@@ -1,16 +1,91 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/router/app_router.dart';
+import '../../../../../core/providers/auth_provider.dart';
 
-class RegisterPage extends StatefulWidget {
+class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
 
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
+  ConsumerState<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
+class _RegisterPageState extends ConsumerState<RegisterPage> {
   int _selectedRoleIndex = 0; // 0: Farmer, 1: Buyer, 2: Officer
+  
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  void _register() async {
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+    final confirmPassword = _confirmPasswordController.text.trim();
+
+    if (name.isEmpty || email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill all fields')),
+      );
+      return;
+    }
+
+    if (password != confirmPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Passwords do not match')),
+      );
+      return;
+    }
+
+    String role = 'farmer';
+    if (_selectedRoleIndex == 1) role = 'buyer';
+    if (_selectedRoleIndex == 2) role = 'officer';
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final userData = {
+        'name': name,
+        'role': role,
+        'status': 'approved',
+      };
+      
+      await ref.read(authControllerProvider.notifier).register(email, password, userData);
+      
+      if (mounted) {
+        Navigator.pushReplacementNamed(
+          context, 
+          AppRouter.home,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +140,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 title: 'Farmer',
                 subtitle: 'List and sell your produce',
                 emoji: '🧑‍🌾',
-                iconBgColor: const Color(0xFFC5E1A5), // Light green tint
+                iconBgColor: const Color(0xFFC5E1A5),
               ),
               const SizedBox(height: 12),
               _buildRoleCard(
@@ -73,7 +148,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 title: 'Buyer',
                 subtitle: 'Browse and order fresh produce',
                 emoji: '🛒',
-                iconBgColor: const Color(0xFFE3F2FD), // Light blue tint
+                iconBgColor: const Color(0xFFE3F2FD),
               ),
               const SizedBox(height: 12),
               _buildRoleCard(
@@ -81,7 +156,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 title: 'Agricultural Officer',
                 subtitle: 'Manage and monitor the platform',
                 emoji: '👨‍💼',
-                iconBgColor: const Color(0xFFFFF9C4), // Light yellow tint
+                iconBgColor: const Color(0xFFFFF9C4),
               ),
               
               const SizedBox(height: 24),
@@ -89,13 +164,13 @@ class _RegisterPageState extends State<RegisterPage> {
               const SizedBox(height: 24),
               
               // Form Fields
-              _buildInputField('Full Name', 'Your full name'),
+              _buildInputField('Full Name', 'Your full name', controller: _nameController),
               const SizedBox(height: 16),
-              _buildInputField('Email / Phone', 'Email or phone number'),
+              _buildInputField('Email / Phone', 'Email or phone number', controller: _emailController),
               const SizedBox(height: 16),
-              _buildInputField('Password', 'Create a password', obscureText: true),
+              _buildInputField('Password', 'Create a password', obscureText: true, controller: _passwordController),
               const SizedBox(height: 16),
-              _buildInputField('Confirm Password', 'Repeat password', obscureText: true),
+              _buildInputField('Confirm Password', 'Repeat password', obscureText: true, controller: _confirmPasswordController),
               
               const SizedBox(height: 32),
               
@@ -103,31 +178,24 @@ class _RegisterPageState extends State<RegisterPage> {
               SizedBox(
                 height: 54,
                 child: ElevatedButton(
-                  onPressed: () {
-                    String role = 'farmer';
-                    if (_selectedRoleIndex == 1) role = 'buyer';
-                    if (_selectedRoleIndex == 2) role = 'officer';
-                    Navigator.pushReplacementNamed(
-                      context, 
-                      AppRouter.home,
-                      arguments: role,
-                    );
-                  },
+                  onPressed: _isLoading ? null : _register,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF387015), // Dark green matching screenshot
+                    backgroundColor: const Color(0xFF387015),
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     elevation: 0,
                   ),
-                  child: const Text(
-                    'Register',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  child: _isLoading 
+                      ? const CircularProgressIndicator(color: Colors.white) 
+                      : const Text(
+                          'Register',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                 ),
               ),
               
@@ -242,7 +310,7 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  Widget _buildInputField(String label, String hint, {bool obscureText = false}) {
+  Widget _buildInputField(String label, String hint, {bool obscureText = false, required TextEditingController controller}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -258,6 +326,7 @@ class _RegisterPageState extends State<RegisterPage> {
         SizedBox(
           height: 48,
           child: TextField(
+            controller: controller,
             obscureText: obscureText,
             style: const TextStyle(fontSize: 14),
             decoration: InputDecoration(

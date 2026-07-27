@@ -1,134 +1,79 @@
 import 'package:flutter/material.dart';
-
-// ── Data model ──────────────────────────────────────────────────────────────
-
-enum ProductStatus { active, pending, sold }
-
-class ProductItem {
-  final String name;
-  final String details; // e.g. "50 kg · Vegetables · Colombo"
-  final String price;
-  final ProductStatus status;
-  final String? note; // banner note below details
-  final NoteType? noteType;
-
-  const ProductItem({
-    required this.name,
-    required this.details,
-    required this.price,
-    required this.status,
-    this.note,
-    this.noteType,
-  });
-}
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../../core/models/product_model.dart';
+import '../../../../../core/providers/product_provider.dart';
 
 enum NoteType { pending, officer }
 
-class MyProductsPage extends StatefulWidget {
+class MyProductsPage extends ConsumerStatefulWidget {
   const MyProductsPage({super.key});
 
   @override
-  State<MyProductsPage> createState() => _MyProductsPageState();
+  ConsumerState<MyProductsPage> createState() => _MyProductsPageState();
 }
 
-class _MyProductsPageState extends State<MyProductsPage> {
+class _MyProductsPageState extends ConsumerState<MyProductsPage> {
   static const Color _green = Color(0xFF387015);
   static const Color _bg = Color(0xFFFAFAFA);
 
-  // ── State ──────────────────────────────────────────────────────────────────
   int _filterIndex = 0; // 0=All, 1=Active, 2=Pending, 3=Sold
-  int _navIndex = 1; // "Product" tab active
 
   final List<String> _filterLabels = [
-    'ALL (5)',
-    'Active(3)',
-    'Pending (1)',
-    'Sold (1)',
+    'ALL',
+    'Active',
+    'Pending',
+    'Sold',
   ];
 
-  final List<ProductItem> _allProducts = const [
-    ProductItem(
-      name: 'Organic Spinach',
-      details: '50 kg · Vegetables · Colombo',
-      price: 'Rs. 120/kg',
-      status: ProductStatus.active,
-    ),
-    ProductItem(
-      name: 'Tomatoes',
-      details: '80 kg · Vegetables · Gampaha',
-      price: '',
-      status: ProductStatus.pending,
-      note: 'Awaiting officer approval',
-      noteType: NoteType.pending,
-    ),
-    ProductItem(
-      name: 'Carrots',
-      details: '40 kg · Vegetables · Kandy',
-      price: '',
-      status: ProductStatus.active,
-      note: '🌾 Added by Agricultural Officer',
-      noteType: NoteType.officer,
-    ),
-    ProductItem(
-      name: 'Bananas',
-      details: '60 kg · Fruits · Matara',
-      price: 'Rs. 60 / kg',
-      status: ProductStatus.sold,
-    ),
-  ];
-
-  List<ProductItem> get _filtered {
+  List<ProductModel> _getFilteredProducts(List<ProductModel> allProducts) {
     switch (_filterIndex) {
       case 1:
-        return _allProducts
-            .where((p) => p.status == ProductStatus.active)
-            .toList();
+        return allProducts.where((p) => p.status == 'active').toList();
       case 2:
-        return _allProducts
-            .where((p) => p.status == ProductStatus.pending)
-            .toList();
+        return allProducts.where((p) => p.status == 'pending').toList();
       case 3:
-        return _allProducts
-            .where((p) => p.status == ProductStatus.sold)
-            .toList();
+        return allProducts.where((p) => p.status == 'sold').toList();
       default:
-        return _allProducts;
+        return allProducts;
     }
   }
 
-  // ── Counts ─────────────────────────────────────────────────────────────────
-  int get _activeCount =>
-      _allProducts.where((p) => p.status == ProductStatus.active).length;
-  int get _pendingCount =>
-      _allProducts.where((p) => p.status == ProductStatus.pending).length;
-  int get _soldCount =>
-      _allProducts.where((p) => p.status == ProductStatus.sold).length;
-
-  // ── Build ──────────────────────────────────────────────────────────────────
-
   @override
   Widget build(BuildContext context) {
+    final productsAsync = ref.watch(farmerProductsProvider);
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: _buildAppBar(),
-      body: Column(
-        children: [
-          _buildFilterTabs(),
-          _buildStatsRow(),
-          Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              itemCount: _filtered.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 10),
-              itemBuilder: (_, i) => _buildProductCard(_filtered[i]),
-            ),
-          ),
-        ],
+      body: productsAsync.when(
+        data: (allProducts) {
+          final filtered = _getFilteredProducts(allProducts);
+          final activeCount = allProducts.where((p) => p.status == 'active').length;
+          final pendingCount = allProducts.where((p) => p.status == 'pending').length;
+          final soldCount = allProducts.where((p) => p.status == 'sold').length;
+
+          return Column(
+            children: [
+              _buildFilterTabs(allProducts.length, activeCount, pendingCount, soldCount),
+              _buildStatsRow(allProducts.length, activeCount, pendingCount, soldCount),
+              Expanded(
+                child: filtered.isEmpty
+                    ? const Center(child: Text('No products found.'))
+                    : ListView.separated(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        itemCount: filtered.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 10),
+                        itemBuilder: (_, i) => _buildProductCard(filtered[i]),
+                      ),
+              ),
+            ],
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text('Error: $err')),
       ),
     );
   }
-
-  // ── AppBar ─────────────────────────────────────────────────────────────────
 
   AppBar _buildAppBar() {
     return AppBar(
@@ -152,7 +97,7 @@ class _MyProductsPageState extends State<MyProductsPage> {
               width: 36,
               height: 36,
               decoration: const BoxDecoration(
-                color: Color(0xFFF0F4EF), // Light background for circle
+                color: Color(0xFFF0F4EF),
                 shape: BoxShape.circle,
               ),
               child: IconButton(
@@ -167,17 +112,22 @@ class _MyProductsPageState extends State<MyProductsPage> {
     );
   }
 
-  // ── Filter tabs ────────────────────────────────────────────────────────────
+  Widget _buildFilterTabs(int total, int active, int pending, int sold) {
+    List<String> labels = [
+      'ALL ($total)',
+      'Active ($active)',
+      'Pending ($pending)',
+      'Sold ($sold)'
+    ];
 
-  Widget _buildFilterTabs() {
     return Container(
       color: Colors.transparent,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
-          children: List.generate(_filterLabels.length, (i) {
-            final active = i == _filterIndex;
+          children: List.generate(labels.length, (i) {
+            final isActiveTab = i == _filterIndex;
             return GestureDetector(
               onTap: () => setState(() => _filterIndex = i),
               child: AnimatedContainer(
@@ -188,19 +138,19 @@ class _MyProductsPageState extends State<MyProductsPage> {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: active ? const Color(0xFFE8F5E9) : Colors.transparent,
+                  color: isActiveTab ? const Color(0xFFE8F5E9) : Colors.transparent,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: active ? _green : Colors.grey.shade300,
-                    width: active ? 1.5 : 1,
+                    color: isActiveTab ? _green : Colors.grey.shade300,
+                    width: isActiveTab ? 1.5 : 1,
                   ),
                 ),
                 child: Text(
-                  _filterLabels[i],
+                  labels[i],
                   style: TextStyle(
                     fontSize: 12,
-                    fontWeight: active ? FontWeight.w700 : FontWeight.normal,
-                    color: active ? _green : Colors.grey.shade600,
+                    fontWeight: isActiveTab ? FontWeight.w700 : FontWeight.normal,
+                    color: isActiveTab ? _green : Colors.grey.shade600,
                   ),
                 ),
               ),
@@ -211,16 +161,14 @@ class _MyProductsPageState extends State<MyProductsPage> {
     );
   }
 
-  // ── Stats row ──────────────────────────────────────────────────────────────
-
-  Widget _buildStatsRow() {
+  Widget _buildStatsRow(int total, int active, int pending, int sold) {
     return Container(
       color: Colors.transparent,
       padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
       child: Row(
         children: [
           _buildStatCard(
-            '$_activeCount',
+            '$active',
             'Active',
             const Color(0xFFF1F8E9),
             _green,
@@ -228,7 +176,7 @@ class _MyProductsPageState extends State<MyProductsPage> {
           ),
           const SizedBox(width: 8),
           _buildStatCard(
-            '${_allProducts.length}',
+            '$total',
             'Total',
             const Color(0xFFF1F8E9),
             _green,
@@ -236,7 +184,7 @@ class _MyProductsPageState extends State<MyProductsPage> {
           ),
           const SizedBox(width: 8),
           _buildStatCard(
-            '$_pendingCount',
+            '$pending',
             'Pending',
             const Color(0xFFFFF8E1),
             const Color(0xFFF57F17),
@@ -244,7 +192,7 @@ class _MyProductsPageState extends State<MyProductsPage> {
           ),
           const SizedBox(width: 8),
           _buildStatCard(
-            '$_soldCount',
+            '$sold',
             'Sold',
             const Color(0xFFEEEEEE),
             Colors.grey.shade700,
@@ -295,17 +243,28 @@ class _MyProductsPageState extends State<MyProductsPage> {
     );
   }
 
-  // ── Product card ───────────────────────────────────────────────────────────
-
-  Widget _buildProductCard(ProductItem product) {
-    final isSold = product.status == ProductStatus.sold;
-    final isPending = product.status == ProductStatus.pending;
-    final borderColor = isPending
-        ? const Color(0xFFFFCC80)
-        : Colors.transparent;
+  Widget _buildProductCard(ProductModel product) {
+    final isSold = product.status == 'sold';
+    final isPending = product.status == 'pending';
+    final borderColor = isPending ? const Color(0xFFFFCC80) : Colors.transparent;
+    
+    // Fallback details if not fully provided
+    final detailsStr = '${product.quantity} ${product.unit} · ${product.category} · ${product.location}';
+    final priceStr = product.price > 0 ? 'Rs. ${product.price}/${product.unit}' : '';
+    
+    // Note logic based on status
+    String? note;
+    NoteType? noteType;
+    if (product.status == 'pending') {
+      note = 'Awaiting officer approval';
+      noteType = NoteType.pending;
+    } else if (product.status == 'flagged') {
+      note = 'Flagged by Officer';
+      noteType = NoteType.officer;
+    }
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 0), // Adjust if needed
+      padding: const EdgeInsets.only(bottom: 0),
       child: Material(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -354,7 +313,7 @@ class _MyProductsPageState extends State<MyProductsPage> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      product.details,
+                      detailsStr,
                       style: TextStyle(
                         fontSize: 11,
                         color: Colors.grey.shade500,
@@ -368,31 +327,26 @@ class _MyProductsPageState extends State<MyProductsPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if (product.note != null)
-                                _buildNoteBanner(
-                                  product.note!,
-                                  product.noteType!,
-                                ),
-                              if (product.price.isNotEmpty)
+                              if (note != null && noteType != null)
+                                _buildNoteBanner(note, noteType),
+                              if (priceStr.isNotEmpty)
                                 Padding(
                                   padding: EdgeInsets.only(
-                                    top: product.note != null ? 4.0 : 0.0,
+                                    top: note != null ? 4.0 : 0.0,
                                   ),
                                   child: Text(
-                                    product.price,
+                                    priceStr,
                                     style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600,
-                                      color: isSold
-                                          ? Colors.grey.shade400
-                                          : Colors.black87,
+                                      color: isSold ? Colors.grey.shade400 : Colors.black87,
                                     ),
                                   ),
                                 ),
                             ],
                           ),
                         ),
-                        if (product.note != null || product.price.isNotEmpty)
+                        if (note != null || priceStr.isNotEmpty)
                           const SizedBox(width: 8),
                         _buildStatusBadge(product.status),
                       ],
@@ -426,9 +380,9 @@ class _MyProductsPageState extends State<MyProductsPage> {
     );
   }
 
-  Widget _buildStatusBadge(ProductStatus status) {
+  Widget _buildStatusBadge(String status) {
     switch (status) {
-      case ProductStatus.active:
+      case 'active':
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
           decoration: BoxDecoration(
@@ -444,7 +398,7 @@ class _MyProductsPageState extends State<MyProductsPage> {
             ),
           ),
         );
-      case ProductStatus.pending:
+      case 'pending':
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
           decoration: BoxDecoration(
@@ -460,7 +414,7 @@ class _MyProductsPageState extends State<MyProductsPage> {
             ),
           ),
         );
-      case ProductStatus.sold:
+      default:
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
           decoration: BoxDecoration(
@@ -468,7 +422,7 @@ class _MyProductsPageState extends State<MyProductsPage> {
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
-            'Sold',
+            status.toUpperCase(),
             style: TextStyle(
               fontSize: 10,
               color: Colors.grey.shade500,
@@ -542,18 +496,16 @@ class _MyProductsPageState extends State<MyProductsPage> {
     );
   }
 
-  // ── Callbacks ──────────────────────────────────────────────────────────────
-
-  void _onEdit(ProductItem product) {
+  void _onEdit(ProductModel product) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Edit: ${product.name}'),
+        content: Text('Edit feature coming soon for ${product.name}'),
         duration: const Duration(seconds: 1),
       ),
     );
   }
 
-  void _onDelete(ProductItem product) {
+  void _onDelete(ProductModel product) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -565,7 +517,10 @@ class _MyProductsPageState extends State<MyProductsPage> {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () async {
+              Navigator.pop(context);
+              await ref.read(productControllerProvider.notifier).deleteProduct(product.id);
+            },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
         ],

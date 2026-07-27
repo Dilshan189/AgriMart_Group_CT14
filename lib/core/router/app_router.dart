@@ -8,6 +8,8 @@ import '../../features/farmer/product/presentation/pages/my_products_page.dart';
 import '../../features/buyer/product/presentation/pages/buyer_product_details_page.dart';
 import '../../features/buyer/product/presentation/pages/buyer_place_request_page.dart';
 
+import '../models/product_model.dart';
+
 class AppRouter {
   static const String splash = '/';
   static const String login = '/login';
@@ -17,6 +19,13 @@ class AppRouter {
   static const String myProducts = '/myProducts';
   static const String buyerProductDetails = '/buyerProductDetails';
   static const String buyerPlaceRequest = '/buyerPlaceRequest';
+
+  static Route<dynamic> _errorRoute() {
+    return MaterialPageRoute(
+      builder: (_) =>
+          const Scaffold(body: Center(child: Text('Page not found'))),
+    );
+  }
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -39,11 +48,19 @@ class AppRouter {
       case myProducts:
         return MaterialPageRoute(builder: (_) => const MyProductsPage());
       case buyerProductDetails:
-        return MaterialPageRoute(
-          builder: (_) => const BuyerProductDetailsPage(),
-        );
+        if (settings.arguments is ProductModel) {
+          return MaterialPageRoute(
+            builder: (_) => BuyerProductDetailsPage(product: settings.arguments as ProductModel),
+          );
+        }
+        return _errorRoute();
       case buyerPlaceRequest:
-        return MaterialPageRoute(builder: (_) => const BuyerPlaceRequestPage());
+        if (settings.arguments is ProductModel) {
+          return MaterialPageRoute(
+            builder: (_) => BuyerPlaceRequestPage(product: settings.arguments as ProductModel),
+          );
+        }
+        return _errorRoute();
 
       default:
         return MaterialPageRoute(

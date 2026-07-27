@@ -1,17 +1,74 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/router/app_router.dart';
+import '../../../../../core/providers/auth_provider.dart';
 
-class LoginPage extends StatefulWidget {
+class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends ConsumerState<LoginPage> {
   bool _obscurePassword = true;
-  int _selectedRoleIndex = 0; // 0: Farmer, 1: Buyer, 2: Officer
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  void _login() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter email and password')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await ref.read(authControllerProvider.notifier).signIn(email, password);
+      
+      // Fetch user role and navigate
+      final userModel = await ref.read(authRepositoryProvider).getCurrentUserModel();
+      if (userModel != null && mounted) {
+        Navigator.pushReplacementNamed(
+          context, 
+          AppRouter.home, 
+          arguments: userModel.role,
+        );
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to load user profile')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,6 +132,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 8),
               TextField(
+                controller: _emailController,
                 decoration: InputDecoration(
                   hintText: 'e.g farmer@gmail.com',
                   hintStyle: TextStyle(color: Colors.grey.shade400),
@@ -114,6 +172,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 8),
               TextField(
+                controller: _passwordController,
                 obscureText: _obscurePassword,
                 decoration: InputDecoration(
                   hintText: '••••••••••••',
@@ -186,19 +245,29 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
               const SizedBox(height: 40),
-              // Role Selection
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildRoleButton(0, '🧑‍🌾', 'Login as Farmer'),
+              // Login Button
+              SizedBox(
+                width: double.infinity,
+                height: 54,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _login,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF5A8441), // Lighter green fill
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(child: _buildRoleButton(1, '🛒', 'Login as Buyer')),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _buildRoleButton(2, '👨‍💼', 'Login as Officer'),
-                  ),
-                ],
+                  child: _isLoading 
+                      ? const CircularProgressIndicator(color: Colors.white) 
+                      : const Text(
+                          'Login',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                ),
               ),
               const SizedBox(height: 40),
               // Register Link
@@ -226,46 +295,6 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRoleButton(int index, String emoji, String title) {
-    bool isSelected = _selectedRoleIndex == index;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedRoleIndex = index;
-        });
-        // Navigate to home page after short delay or immediately
-        Navigator.pushReplacementNamed(context, AppRouter.home);
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected ? const Color(0xFF2E5E16) : Colors.grey.shade300,
-            width: isSelected ? 2 : 1,
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(emoji, style: const TextStyle(fontSize: 20)),
-            const SizedBox(height: 4),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 12,
-                color: isSelected ? const Color(0xFF2E5E16) : Colors.grey,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              ),
-            ),
-          ],
         ),
       ),
     );
