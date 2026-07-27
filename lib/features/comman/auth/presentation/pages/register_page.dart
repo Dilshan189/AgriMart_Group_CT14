@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_theme.dart';
-import '../../../../core/router/app_router.dart';
+import '../../../../../core/theme/app_theme.dart';
+import '../../../../../core/router/app_router.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -104,7 +104,12 @@ class _RegisterPageState extends State<RegisterPage> {
                 height: 54,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.pushReplacementNamed(context, AppRouter.home);
+                    final bool isBuyer = _selectedRoleIndex == 1;
+                    Navigator.pushReplacementNamed(
+                      context, 
+                      AppRouter.home,
+                      arguments: isBuyer,
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF387015), // Dark green matching screenshot

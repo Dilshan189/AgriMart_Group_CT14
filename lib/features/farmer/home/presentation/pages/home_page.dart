@@ -1,10 +1,15 @@
 import 'package:agri_mart/features/farmer/product/presentation/pages/my_products_page.dart';
 import 'package:flutter/material.dart';
+import 'package:agri_mart/core/widgets/bottom_nav/custom_bottom_nav_bar.dart';
 import 'package:agri_mart/features/farmer/orders/presentation/pages/orders_page.dart';
 import 'package:agri_mart/features/farmer/profile/presentation/pages/profile_page.dart';
+import 'package:agri_mart/features/buyer/home/presentation/pages/buyer_home_content.dart';
+import 'package:agri_mart/features/buyer/profile/presentation/pages/buyer_profile_page.dart';
+import 'package:agri_mart/features/buyer/browse/presentation/pages/buyer_browse_page.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final bool isBuyer;
+  const HomePage({super.key, this.isBuyer = false});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -17,25 +22,51 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9F9),
-      appBar: _selectedIndex == 0 ? _buildAppBar() : null,
+      appBar: _selectedIndex == 0
+          ? (widget.isBuyer ? _buildBuyerAppBar() : _buildAppBar())
+          : null,
       body: _buildBody(),
-      bottomNavigationBar: _buildBottomNavigationBar(),
+      bottomNavigationBar: CustomBottomNavBar(
+        isBuyer: widget.isBuyer,
+        selectedIndex: _selectedIndex,
+        onItemSelected: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+      ),
     );
   }
 
   Widget _buildBody() {
-    switch (_selectedIndex) {
-      case 0:
-        return _buildHomeContent();
-      case 1:
-        return const MyProductsPage();
-      case 3:
-        return const OrdersPage();
-      case 4:
-        return const ProfilePage();
-      // Add other cases here for other tabs later
-      default:
-        return _buildHomeContent();
+    if (widget.isBuyer) {
+      switch (_selectedIndex) {
+        case 0:
+          return const BuyerHomeContent();
+        case 1:
+          return const BuyerBrowsePage();
+        case 2:
+          return const Center(child: Text('Alerts Page (Coming Soon)'));
+        case 3:
+          return const OrdersPage(); // or BuyerOrdersPage later
+        case 4:
+          return const BuyerProfilePage();
+        default:
+          return const BuyerHomeContent();
+      }
+    } else {
+      switch (_selectedIndex) {
+        case 0:
+          return _buildHomeContent();
+        case 1:
+          return const MyProductsPage();
+        case 3:
+          return const OrdersPage();
+        case 4:
+          return const ProfilePage();
+        default:
+          return _buildHomeContent();
+      }
     }
   }
 
@@ -210,6 +241,65 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  PreferredSizeWidget _buildBuyerAppBar() {
+    return AppBar(
+      automaticallyImplyLeading: false,
+      backgroundColor: Colors.white,
+      elevation: 0,
+      title: Row(
+        children: [
+          const Text('🛒', style: TextStyle(fontSize: 20)),
+          const SizedBox(width: 8),
+          const Text(
+            'AgriMart',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            Container(
+              margin: const EdgeInsets.only(right: 12),
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Colors.amber.withOpacity(0.2), // Light yellowish
+                shape: BoxShape.circle,
+              ),
+              child: const Text('🔔', style: TextStyle(fontSize: 18)),
+            ),
+            Positioned(
+              right: 12,
+              top: 10,
+              child: Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+          ],
+        ),
+        Container(
+          margin: const EdgeInsets.only(right: 16),
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: Colors.blue.withOpacity(0.1), // Light blueish
+            shape: BoxShape.circle,
+          ),
+          child: const Text('👤', style: TextStyle(fontSize: 18)),
+        ),
+      ],
+    );
+  }
+
   Widget _buildStatCard(String value, String label) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -375,70 +465,4 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildBottomNavigationBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildNavItem(0, '🏠', 'Home', isActive: _selectedIndex == 0),
-              _buildNavItem(1, '📦', 'Product', isActive: _selectedIndex == 1),
-              _buildNavItem(2, '➕', 'add', isCenterIcon: true),
-              _buildNavItem(3, '📋', 'Orders', isActive: _selectedIndex == 3),
-              _buildNavItem(4, '👤', 'Profile', isActive: _selectedIndex == 4),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(
-    int index,
-    String emoji,
-    String label, {
-    bool isActive = false,
-    bool isCenterIcon = false,
-  }) {
-    final color = isActive ? const Color(0xFF387015) : Colors.grey.shade500;
-
-    return GestureDetector(
-      onTap: () {
-        if (index == 2) {
-          Navigator.pushNamed(context, '/addProduct');
-        } else {
-          setState(() {
-            _selectedIndex = index;
-          });
-        }
-      },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(emoji, style: TextStyle(fontSize: isCenterIcon ? 28 : 24)),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              color: color,
-              fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
