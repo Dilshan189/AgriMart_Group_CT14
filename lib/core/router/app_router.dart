@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import '../../features/splash/presentation/pages/splash_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
-import '../../features/home/presentation/pages/home_page.dart';
-import '../../features/product/presentation/pages/add_product_page.dart';
-import '../../features/product/presentation/pages/my_products_page.dart';
+import '../../features/farmer/home/presentation/pages/home_page.dart';
+import '../../features/farmer/product/presentation/pages/add_product_page.dart';
+import '../../features/farmer/product/presentation/pages/my_products_page.dart';
 
 class AppRouter {
   static const String splash = '/';

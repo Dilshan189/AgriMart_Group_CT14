@@ -1,7 +1,7 @@
-import 'package:agri_mart/features/product/presentation/pages/my_products_page.dart';
+import 'package:agri_mart/features/farmer/product/presentation/pages/my_products_page.dart';
 import 'package:flutter/material.dart';
-import 'package:agri_mart/features/orders/presentation/pages/orders_page.dart';
-import 'package:agri_mart/features/profile/presentation/pages/profile_page.dart';
+import 'package:agri_mart/features/farmer/orders/presentation/pages/orders_page.dart';
+import 'package:agri_mart/features/farmer/profile/presentation/pages/profile_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
