@@ -65,4 +65,36 @@ class ProductModel {
       'imageUrl': imageUrl,
     };
   }
+
+  ProductModel copyWith({
+    String? id,
+    String? farmerId,
+    String? farmerName,
+    String? name,
+    String? category,
+    double? quantity,
+    String? unit,
+    String? location,
+    String? description,
+    String? status,
+    double? price,
+    DateTime? createdAt,
+    String? imageUrl,
+  }) {
+    return ProductModel(
+      id: id ?? this.id,
+      farmerId: farmerId ?? this.farmerId,
+      farmerName: farmerName ?? this.farmerName,
+      name: name ?? this.name,
+      category: category ?? this.category,
+      quantity: quantity ?? this.quantity,
+      unit: unit ?? this.unit,
+      location: location ?? this.location,
+      description: description ?? this.description,
+      status: status ?? this.status,
+      price: price ?? this.price,
+      createdAt: createdAt ?? this.createdAt,
+      imageUrl: imageUrl ?? this.imageUrl,
+    );
+  }
 }

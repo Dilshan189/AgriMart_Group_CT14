@@ -1,10 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../../core/providers/user_provider.dart';
+import '../../../../../core/providers/product_provider.dart';
 
-class OfficerDashboardContent extends StatelessWidget {
+class OfficerDashboardContent extends ConsumerWidget {
   const OfficerDashboardContent({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final farmersAsync = ref.watch(farmersProvider);
+    final buyersAsync = ref.watch(buyersProvider);
+    final productsAsync = ref.watch(allProductsProvider);
+
+    int farmersCount = farmersAsync.value?.length ?? 0;
+    int buyersCount = buyersAsync.value?.length ?? 0;
+    int productsCount = productsAsync.value?.length ?? 0;
+    
+    int flaggedProducts = productsAsync.value?.where((p) => p.status == 'flagged').length ?? 0;
+    int pendingProducts = productsAsync.value?.where((p) => p.status == 'pending').length ?? 0;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -12,7 +26,7 @@ class OfficerDashboardContent extends StatelessWidget {
         children: [
           // Subtitle
           Text(
-            'Agricultural Officer — Zone 3 Overview',
+            'Agricultural Officer — Dashboard Overview',
             style: TextStyle(
               fontSize: 13,
               color: Colors.grey.shade500,
@@ -25,7 +39,7 @@ class OfficerDashboardContent extends StatelessWidget {
             children: [
               Expanded(
                 child: _buildStatCard(
-                  '24',
+                  '$farmersCount',
                   'Farmers',
                   bgColor: const Color(0xFFEDF5E1),
                   borderColor: const Color(0xFFC5E1A5),
@@ -35,7 +49,7 @@ class OfficerDashboardContent extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: _buildStatCard(
-                  '57',
+                  '$buyersCount',
                   'Buyers',
                   bgColor: Colors.blue.shade50,
                   borderColor: Colors.blue.shade200,
@@ -45,7 +59,7 @@ class OfficerDashboardContent extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: _buildStatCard(
-                  '143',
+                  '$productsCount',
                   'Products',
                   bgColor: Colors.orange.shade50,
                   borderColor: Colors.orange.shade200,
@@ -61,21 +75,21 @@ class OfficerDashboardContent extends StatelessWidget {
             children: [
               Expanded(
                 child: _buildStatCard(
-                  '24',
-                  'Farmers',
+                  '$pendingProducts',
+                  'Pending Approval',
                   bgColor: Colors.white,
-                  borderColor: Colors.red.shade100,
-                  textColor: const Color(0xFF1B5E20),
+                  borderColor: Colors.orange.shade100,
+                  textColor: Colors.orange.shade800,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: _buildStatCard(
-                  '57',
-                  'Buyers',
+                  '$flaggedProducts',
+                  'Flagged Items',
                   bgColor: Colors.white,
                   borderColor: Colors.red.shade100,
-                  textColor: const Color(0xFF1B5E20),
+                  textColor: Colors.red.shade800,
                 ),
               ),
             ],
@@ -128,24 +142,29 @@ class OfficerDashboardContent extends StatelessWidget {
             ),
             child: Column(
               children: [
-                _buildActivityItem(
-                  '🆕',
-                  'New farmer registration: ',
-                  'Wickramasinghe W.',
-                ),
-                const SizedBox(height: 12),
-                _buildActivityItem(
-                  '📦',
-                  'New product listed: ',
-                  'Organic Rice — 200kg',
-                ),
-                const SizedBox(height: 12),
-                _buildActivityItem(
-                  '⚠️',
-                  'Flagged listing requires review',
-                  '',
-                  isAlert: true,
-                ),
+                if (farmersCount > 0)
+                  _buildActivityItem(
+                    '🆕',
+                    'New farmer registration: ',
+                    farmersAsync.value!.last.name,
+                  ),
+                if (farmersCount > 0) const SizedBox(height: 12),
+                if (productsCount > 0)
+                  _buildActivityItem(
+                    '📦',
+                    'New product listed: ',
+                    productsAsync.value!.last.name,
+                  ),
+                if (productsCount > 0) const SizedBox(height: 12),
+                if (flaggedProducts > 0)
+                  _buildActivityItem(
+                    '⚠️',
+                    'Flagged listing requires review',
+                    '',
+                    isAlert: true,
+                  ),
+                if (farmersCount == 0 && productsCount == 0 && flaggedProducts == 0)
+                  const Text('No recent activity.'),
               ],
             ),
           ),
@@ -182,10 +201,11 @@ class OfficerDashboardContent extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             label,
+            textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: textColor.withOpacity(0.8),
+              fontWeight: FontWeight.w600,
+              color: textColor,
             ),
           ),
         ],
@@ -194,27 +214,23 @@ class OfficerDashboardContent extends StatelessWidget {
   }
 
   Widget _buildActionButton(String emoji, String label) {
-    return OutlinedButton(
-      onPressed: () {},
-      style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        side: const BorderSide(color: Color(0xFF8D6E63), width: 1), // Brown border
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        backgroundColor: Colors.white,
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Column(
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 14)),
-          const SizedBox(width: 8),
+          Text(emoji, style: const TextStyle(fontSize: 24)),
+          const SizedBox(height: 8),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF6D4C41), // Dark brown text
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade700,
             ),
           ),
         ],
@@ -226,26 +242,39 @@ class OfficerDashboardContent extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 16)),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: isAlert ? Colors.red.shade50 : Colors.grey.shade100,
+            shape: BoxShape.circle,
+          ),
+          child: Text(emoji, style: const TextStyle(fontSize: 16)),
+        ),
         const SizedBox(width: 12),
         Expanded(
-          child: RichText(
-            text: TextSpan(
-              style: TextStyle(
-                fontSize: 13,
-                color: isAlert ? Colors.red.shade400 : Colors.black87,
-              ),
-              children: [
-                TextSpan(
-                  text: title,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: isAlert ? FontWeight.w600 : FontWeight.normal,
+                  color: isAlert ? Colors.red.shade700 : Colors.black87,
                 ),
-                if (subtitle.isNotEmpty)
-                  TextSpan(
-                    text: subtitle,
-                    style: TextStyle(color: Colors.grey.shade600),
+              ),
+              if (subtitle.isNotEmpty) ...[
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
                   ),
-              ],
-            ),
+                ),
+              ]
+            ],
           ),
         ),
       ],

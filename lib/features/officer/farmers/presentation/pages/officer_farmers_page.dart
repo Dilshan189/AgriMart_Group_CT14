@@ -1,10 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../../core/providers/user_provider.dart';
+import '../../../../../core/models/user_model.dart';
 
-class OfficerFarmersPage extends StatelessWidget {
+class OfficerFarmersPage extends ConsumerStatefulWidget {
   const OfficerFarmersPage({super.key});
 
   @override
+  ConsumerState<OfficerFarmersPage> createState() => _OfficerFarmersPageState();
+}
+
+class _OfficerFarmersPageState extends ConsumerState<OfficerFarmersPage> {
+  String _searchQuery = '';
+  String _selectedFilter = 'ALL';
+
+  @override
   Widget build(BuildContext context) {
+    final farmersAsync = ref.watch(farmersProvider);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9F9),
       appBar: AppBar(
@@ -20,105 +33,128 @@ class OfficerFarmersPage extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            padding: const EdgeInsets.all(8),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.add, color: Color(0xFF8D5A36), size: 20),
-          ),
-        ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Search Bar
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade300),
-              ),
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search farmers...',
-                  hintStyle: TextStyle(color: Colors.grey.shade500),
-                  prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
+      body: farmersAsync.when(
+        data: (farmers) {
+          int total = farmers.length;
+          int approved = farmers.where((f) => f.status == 'approved').length;
+          int pending = farmers.where((f) => f.status == 'pending').length;
+
+          // Filtering
+          List<UserModel> filteredFarmers = farmers.where((f) {
+            bool matchesSearch = f.name.toLowerCase().contains(_searchQuery) ||
+                (f.district ?? '').toLowerCase().contains(_searchQuery);
+
+            bool matchesFilter = true;
+            if (_selectedFilter == 'Approved') {
+              matchesFilter = f.status == 'approved';
+            } else if (_selectedFilter == 'Pending') {
+              matchesFilter = f.status == 'pending';
+            }
+            return matchesSearch && matchesFilter;
+          }).toList();
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Search Bar
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: TextField(
+                    onChanged: (val) {
+                      setState(() {
+                        _searchQuery = val.toLowerCase();
+                      });
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'Search farmers...',
+                      hintStyle: TextStyle(color: Colors.grey.shade500),
+                      prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-            // Filter Chips
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  _buildFilterChip('All(24)', isSelected: true),
-                  const SizedBox(width: 8),
-                  _buildFilterChip('Approved (21)'),
-                  const SizedBox(width: 8),
-                  _buildFilterChip('Pending(3)'),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
+                // Filter Chips
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildFilterChip('ALL', total),
+                      const SizedBox(width: 8),
+                      _buildFilterChip('Approved', approved),
+                      const SizedBox(width: 8),
+                      _buildFilterChip('Pending', pending),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
 
-            // Pending Review Card (Wickramasinghe W.D.U)
-            _buildPendingFarmerCard(),
-            const SizedBox(height: 12),
+                if (filteredFarmers.isEmpty)
+                  const Center(child: Text('No farmers found.'))
+                else
+                  ...filteredFarmers.map((f) {
+                    if (f.status == 'pending') {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: _buildPendingFarmerCard(f),
+                      );
+                    } else {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: _buildApprovedFarmerCard(f),
+                      );
+                    }
+                  }).toList(),
+                const SizedBox(height: 20),
+              ],
+            ),
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text('Error: $err')),
+      ),
+    );
+  }
 
-            // Approved Cards
-            _buildApprovedFarmerCard(
-              name: 'Kumarasinghe K.M.B.S.S',
-              details: 'Colombo · 5 products listed',
-            ),
-            const SizedBox(height: 12),
-            _buildApprovedFarmerCard(
-              name: 'Ahamed N.A.M.',
-              details: 'Gampaha · 3 products listed',
-            ),
-            const SizedBox(height: 12),
-            _buildApprovedFarmerCard(
-              name: 'Sandeepa K.H.',
-              details: 'Kandy · 7 products listed',
-            ),
-            const SizedBox(height: 20),
-          ],
+  Widget _buildFilterChip(String label, int count) {
+    bool isSelected = _selectedFilter == label;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedFilter = label;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.orange.shade50 : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? Colors.orange.shade300 : Colors.grey.shade300,
+          ),
+        ),
+        child: Text(
+          '$label ($count)',
+          style: TextStyle(
+            color: isSelected ? Colors.brown.shade800 : Colors.grey.shade500,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            fontSize: 13,
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildFilterChip(String label, {bool isSelected = false}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      decoration: BoxDecoration(
-        color: isSelected ? Colors.orange.shade50 : Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isSelected ? Colors.orange.shade300 : Colors.grey.shade300,
-        ),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: isSelected ? Colors.brown.shade800 : Colors.grey.shade500,
-          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-          fontSize: 13,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPendingFarmerCard() {
+  Widget _buildPendingFarmerCard(UserModel farmer) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -134,8 +170,8 @@ class OfficerFarmersPage extends StatelessWidget {
               Container(
                 width: 60,
                 height: 60,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFC5E1A5),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFC5E1A5),
                   shape: BoxShape.circle,
                 ),
                 alignment: Alignment.center,
@@ -152,7 +188,7 @@ class OfficerFarmersPage extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            'Wickramasinghe W.D.U',
+                            farmer.name,
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -182,7 +218,7 @@ class OfficerFarmersPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Matara District -New\nRegistration',
+                      '${farmer.district ?? 'Unknown'} District\nRegistration',
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey.shade500,
@@ -207,9 +243,9 @@ class OfficerFarmersPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildInfoRow('NIC:', '199012345678'),
+                      _buildInfoRow('NIC:', 'Not Provided'),
                       const SizedBox(height: 6),
-                      _buildInfoRow('Phone:', '077 123 4567'),
+                      _buildInfoRow('Phone:', farmer.phone ?? 'Not Provided'),
                     ],
                   ),
                 ),
@@ -217,9 +253,9 @@ class OfficerFarmersPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildInfoRow('District:', 'Matara'),
+                      _buildInfoRow('District:', farmer.district ?? 'Unknown'),
                       const SizedBox(height: 6),
-                      _buildInfoRow('Applied:', 'Today'),
+                      _buildInfoRow('Applied:', 'Recent'),
                     ],
                   ),
                 ),
@@ -231,7 +267,9 @@ class OfficerFarmersPage extends StatelessWidget {
             children: [
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: () {},
+                  onPressed: () {
+                    ref.read(userControllerProvider.notifier).updateUserStatus(farmer.id, 'approved');
+                  },
                   icon: const Icon(Icons.check, color: Colors.white, size: 18),
                   label: const Text(
                     'Approve',
@@ -253,7 +291,9 @@ class OfficerFarmersPage extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () {},
+                  onPressed: () {
+                    ref.read(userControllerProvider.notifier).updateUserStatus(farmer.id, 'rejected');
+                  },
                   icon: const Icon(
                     Icons.close,
                     color: Color(0xFFC62828),
@@ -301,10 +341,7 @@ class OfficerFarmersPage extends StatelessWidget {
     );
   }
 
-  Widget _buildApprovedFarmerCard({
-    required String name,
-    required String details,
-  }) {
+  Widget _buildApprovedFarmerCard(UserModel farmer) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -317,8 +354,8 @@ class OfficerFarmersPage extends StatelessWidget {
           Container(
             width: 50,
             height: 50,
-            decoration: BoxDecoration(
-              color: const Color(0xFFC5E1A5),
+            decoration: const BoxDecoration(
+              color: Color(0xFFC5E1A5),
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
@@ -330,7 +367,7 @@ class OfficerFarmersPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  name,
+                  farmer.name,
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
@@ -339,7 +376,7 @@ class OfficerFarmersPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  details,
+                  '${farmer.district ?? 'Unknown'} · Active',
                   style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
                 ),
               ],
