@@ -104,6 +104,7 @@ class _OrdersPageState extends State<OrdersPage> {
     return AppBar(
       backgroundColor: _green,
       elevation: 0,
+      automaticallyImplyLeading: false,
       centerTitle: false,
       title: const Text(
         'Buyer Requests',

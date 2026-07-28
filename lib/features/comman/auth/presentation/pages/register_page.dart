@@ -19,6 +19,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
@@ -31,7 +33,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
   void _register() async {
     final name = _nameController.text.trim();
-    final email = _emailController.text.trim();
+    final email = _emailController.text.trim().replaceAll(' ', '');
     final password = _passwordController.text.trim();
     final confirmPassword = _confirmPasswordController.text.trim();
 
@@ -58,7 +60,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     });
 
     try {
-      final userData = {
+      final Map<String, dynamic> userData = {
         'name': name,
         'role': role,
         'status': 'approved',
@@ -70,6 +72,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         Navigator.pushReplacementNamed(
           context, 
           AppRouter.home,
+          arguments: role,
         );
       }
     } catch (e) {
@@ -164,13 +167,58 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               const SizedBox(height: 24),
               
               // Form Fields
-              _buildInputField('Full Name', 'Your full name', controller: _nameController),
+              _buildInputField(
+                'Full Name', 
+                'Your full name', 
+                controller: _nameController,
+                textCapitalization: TextCapitalization.words,
+              ),
               const SizedBox(height: 16),
-              _buildInputField('Email / Phone', 'Email or phone number', controller: _emailController),
+              _buildInputField(
+                'Email / Phone', 
+                'Email or phone number', 
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                autocorrect: false,
+              ),
               const SizedBox(height: 16),
-              _buildInputField('Password', 'Create a password', obscureText: true, controller: _passwordController),
+              _buildInputField(
+                'Password', 
+                'Create a password', 
+                obscureText: _obscurePassword, 
+                controller: _passwordController,
+                autocorrect: false,
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                    color: Colors.grey,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscurePassword = !_obscurePassword;
+                    });
+                  },
+                ),
+              ),
               const SizedBox(height: 16),
-              _buildInputField('Confirm Password', 'Repeat password', obscureText: true, controller: _confirmPasswordController),
+              _buildInputField(
+                'Confirm Password', 
+                'Repeat password', 
+                obscureText: _obscureConfirmPassword, 
+                controller: _confirmPasswordController,
+                autocorrect: false,
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                    color: Colors.grey,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscureConfirmPassword = !_obscureConfirmPassword;
+                    });
+                  },
+                ),
+              ),
               
               const SizedBox(height: 32),
               
@@ -310,7 +358,16 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     );
   }
 
-  Widget _buildInputField(String label, String hint, {bool obscureText = false, required TextEditingController controller}) {
+  Widget _buildInputField(
+    String label, 
+    String hint, {
+    bool obscureText = false, 
+    required TextEditingController controller,
+    TextInputType? keyboardType,
+    bool autocorrect = true,
+    TextCapitalization textCapitalization = TextCapitalization.none,
+    Widget? suffixIcon,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -328,10 +385,14 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           child: TextField(
             controller: controller,
             obscureText: obscureText,
+            keyboardType: keyboardType,
+            autocorrect: autocorrect,
+            textCapitalization: textCapitalization,
             style: const TextStyle(fontSize: 14),
             decoration: InputDecoration(
               hintText: hint,
               hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+              suffixIcon: suffixIcon,
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
               fillColor: Colors.white,
               filled: true,

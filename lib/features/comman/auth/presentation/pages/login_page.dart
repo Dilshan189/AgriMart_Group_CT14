@@ -26,7 +26,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   void _login(String role) async {
-    final email = _emailController.text.trim();
+    final email = _emailController.text.trim().replaceAll(' ', '');
     final password = _passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
@@ -143,6 +143,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               const SizedBox(height: 8),
               TextField(
                 controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                autocorrect: false,
+                textCapitalization: TextCapitalization.none,
                 decoration: InputDecoration(
                   hintText: 'e.g farmer@gmail.com',
                   hintStyle: TextStyle(color: Colors.grey.shade400),
