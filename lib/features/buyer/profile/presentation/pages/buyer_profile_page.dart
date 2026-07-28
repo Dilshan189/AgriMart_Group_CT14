@@ -148,6 +148,17 @@ class BuyerProfilePage extends StatelessWidget {
                   ),
                   _buildListDivider(),
                   _buildMenuItem(
+                    icon: Icons.add_circle_outline,
+                    title: 'Post a Request',
+                    subtitle: 'Request a product from farmers',
+                    iconColor: Colors.green,
+                    bgColor: Colors.green.shade50,
+                    onTap: () {
+                      Navigator.pushNamed(context, '/buyerPostOpenRequest');
+                    },
+                  ),
+                  _buildListDivider(),
+                  _buildMenuItem(
                     icon: Icons.receipt_long_outlined,
                     title: 'My Orders',
                     subtitle: '4 orders placed',
@@ -246,13 +257,14 @@ class BuyerProfilePage extends StatelessWidget {
     Color? bgColor,
     Color? titleColor,
     bool isLogout = false,
+    VoidCallback? onTap,
   }) {
     final effectiveIconColor = iconColor ?? Colors.blue.shade700;
     final effectiveBgColor = bgColor ?? Colors.blue.shade50;
     final effectiveTitleColor = titleColor ?? Colors.black87;
 
     return InkWell(
-      onTap: () {},
+      onTap: onTap ?? () {},
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Row(

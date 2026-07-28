@@ -18,9 +18,18 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
+  String? _selectedDistrict;
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+
+  final List<String> _districts = [
+    'Ampara', 'Anuradhapura', 'Badulla', 'Batticaloa', 'Colombo', 'Galle',
+    'Gampaha', 'Hambantota', 'Jaffna', 'Kalutara', 'Kandy', 'Kegalle',
+    'Kilinochchi', 'Kurunegala', 'Mannar', 'Matale', 'Matara', 'Monaragala',
+    'Mullaitivu', 'Nuwara Eliya', 'Polonnaruwa', 'Puttalam', 'Ratnapura',
+    'Trincomalee', 'Vavuniya'
+  ];
 
   @override
   void dispose() {
@@ -34,12 +43,13 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   void _register() async {
     final name = _nameController.text.trim();
     final email = _emailController.text.trim().replaceAll(' ', '');
+    final district = _selectedDistrict ?? '';
     final password = _passwordController.text.trim();
     final confirmPassword = _confirmPasswordController.text.trim();
 
-    if (name.isEmpty || email.isEmpty || password.isEmpty) {
+    if (name.isEmpty || email.isEmpty || password.isEmpty || district.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all fields')),
+        const SnackBar(content: Text('Please fill all fields and select a district')),
       );
       return;
     }
@@ -63,6 +73,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       final Map<String, dynamic> userData = {
         'name': name,
         'role': role,
+        'district': district,
         'status': 'approved',
       };
       
@@ -180,6 +191,49 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 autocorrect: false,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'District',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                value: _selectedDistrict,
+                hint: const Text('Select your district'),
+                isExpanded: true,
+                decoration: InputDecoration(
+                  fillColor: Colors.grey.shade50,
+                  filled: true,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade200),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade200),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFF387015), width: 1.5),
+                  ),
+                ),
+                items: _districts.map((district) {
+                  return DropdownMenuItem<String>(
+                    value: district,
+                    child: Text(district),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedDistrict = value;
+                  });
+                },
               ),
               const SizedBox(height: 16),
               _buildInputField(

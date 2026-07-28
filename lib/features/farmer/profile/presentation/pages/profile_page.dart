@@ -1,19 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../../core/providers/auth_provider.dart';
+import '../../../../../core/providers/product_provider.dart';
+import '../../../../../core/providers/request_provider.dart';
+import '../../../../../core/router/app_router.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
 
   static const Color _green = Color(0xFF387015);
-  static const Color _darkGreen = Color(0xFF24480E); // Darker shade for stats row
+  static const Color _darkGreen = Color(0xFF24480E);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(currentUserProvider).value;
+    final products = ref.watch(farmerProductsProvider).value ?? [];
+    final requests = ref.watch(farmerRequestsProvider).value ?? [];
+    
+    int activeListings = products.length;
+    int totalRequests = requests.length;
+    int soldCount = requests.where((r) => r.status == 'accepted').length;
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          _buildHeader(),
-          _buildStatsRow(),
+          _buildHeader(user?.name ?? 'Farmer', user?.district ?? 'Unknown'),
+          _buildStatsRow(activeListings, totalRequests, soldCount),
           Expanded(
             child: ListView(
               padding: EdgeInsets.zero,
@@ -23,21 +36,21 @@ class ProfilePage extends StatelessWidget {
                   iconColor: const Color(0xFF455A64),
                   iconBg: const Color(0xFFF1F8E9),
                   title: 'Personal Info',
-                  subtitle: 'Name, phone, NIC',
+                  subtitle: '${user?.name ?? 'Name'}, ${user?.phone ?? 'Phone'}, ${user?.nic ?? 'NIC'}',
                 ),
                 _buildMenuItem(
                   icon: Icons.location_on,
                   iconColor: Colors.black87,
                   iconBg: const Color(0xFFF1F8E9),
                   title: 'Farm Location',
-                  subtitle: 'Colombo District, Zone 3',
+                  subtitle: '${user?.district ?? 'Unknown'} District',
                 ),
                 _buildMenuItem(
                   icon: Icons.inventory_2,
                   iconColor: const Color(0xFF795548),
                   iconBg: const Color(0xFFF1F8E9),
                   title: 'My Products',
-                  subtitle: '5 active listings',
+                  subtitle: '$activeListings active listings',
                 ),
                 _buildMenuItem(
                   icon: Icons.notifications,
@@ -67,6 +80,12 @@ class ProfilePage extends StatelessWidget {
                   title: 'Logout',
                   titleColor: const Color(0xFFD32F2F),
                   isLast: true,
+                  onTap: () async {
+                    await ref.read(authControllerProvider.notifier).signOut();
+                    if (context.mounted) {
+                      Navigator.pushNamedAndRemoveUntil(context, AppRouter.login, (route) => false);
+                    }
+                  }
                 ),
                 const SizedBox(height: 20),
               ],
@@ -77,7 +96,7 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(String name, String district) {
     return Container(
       color: _green,
       padding: const EdgeInsets.only(top: 48, left: 16, right: 16, bottom: 20),
@@ -135,9 +154,9 @@ class ProfilePage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Kumarasinghe\nK.M.B.S.S',
-                      style: TextStyle(
+                    Text(
+                      name,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -146,7 +165,7 @@ class ProfilePage extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Farmer · Colombo District',
+                      'Farmer · $district District',
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.8),
                         fontSize: 12,
@@ -192,18 +211,18 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildStatsRow() {
+  Widget _buildStatsRow(int products, int requests, int sold) {
     return Container(
       color: _darkGreen,
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildStatItem('5', 'Product'),
+          _buildStatItem('$products', 'Product'),
           _buildDivider(),
-          _buildStatItem('3', 'Orders'),
+          _buildStatItem('$requests', 'Requests'),
           _buildDivider(),
-          _buildStatItem('2', 'Sold'),
+          _buildStatItem('$sold', 'Sold'),
         ],
       ),
     );
@@ -249,6 +268,7 @@ class ProfilePage extends StatelessWidget {
     String? subtitle,
     Color titleColor = Colors.black87,
     bool isLast = false,
+    VoidCallback? onTap,
   }) {
     return Column(
       children: [
@@ -280,7 +300,7 @@ class ProfilePage extends StatelessWidget {
                   ),
                 )
               : null,
-          onTap: () {},
+          onTap: onTap ?? () {},
         ),
         if (!isLast)
           Padding(

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:geolocator/geolocator.dart';
+import 'dart:io';
 import '../../../../../core/providers/product_provider.dart';
 import '../../../../../core/providers/auth_provider.dart';
 import '../../../../../core/models/product_model.dart';
@@ -23,7 +26,9 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
 
+  XFile? _selectedImage;
   bool _isLoading = false;
+  bool _isGettingLocation = false;
 
   @override
   void dispose() {
@@ -34,6 +39,58 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
     _locationController.dispose();
     _descriptionController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      setState(() {
+        _selectedImage = image;
+      });
+    }
+  }
+
+  Future<void> _getCurrentLocation() async {
+    setState(() {
+      _isGettingLocation = true;
+    });
+    
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        throw Exception('Location services are disabled.');
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw Exception('Location permissions are denied');
+        }
+      }
+      
+      if (permission == LocationPermission.deniedForever) {
+        throw Exception('Location permissions are permanently denied');
+      } 
+
+      Position position = await Geolocator.getCurrentPosition();
+      setState(() {
+        _locationController.text = '${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}';
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to get location: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isGettingLocation = false;
+        });
+      }
+    }
   }
 
   void _submitProduct() async {
@@ -257,84 +314,108 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
   }
 
   Widget _buildImageUploadBox() {
-    return DottedBorder(
-      options: RoundedRectDottedBorderOptions(
-        color: const Color(0xFF9CCC65),
-        strokeWidth: 1.5,
-        dashPattern: const [8, 4],
-        radius: const Radius.circular(12),
-      ),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 32),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+    return GestureDetector(
+      onTap: _pickImage,
+      child: DottedBorder(
+        options: RoundedRectDottedBorderOptions(
+          color: const Color(0xFF9CCC65),
+          strokeWidth: 1.5,
+          dashPattern: const [8, 4],
+          radius: const Radius.circular(12),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.image_outlined, color: Colors.black87, size: 32),
-            const SizedBox(height: 8),
-            const Text(
-              'Tap to upload product photo',
-              style: TextStyle(
-                color: Color(0xFF387015),
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'JPG, PNG up to 5MB',
-              style: TextStyle(
-                color: Colors.grey.shade500,
-                fontSize: 10,
-              ),
-            ),
-          ],
+        child: Container(
+          width: double.infinity,
+          height: 150,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: _selectedImage != null
+              ? ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.file(
+                    File(_selectedImage!.path),
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: 150,
+                  ),
+                )
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.image_outlined, color: Colors.black87, size: 32),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Tap to upload product photo',
+                      style: TextStyle(
+                        color: Color(0xFF387015),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'JPG, PNG up to 5MB',
+                      style: TextStyle(
+                        color: Colors.grey.shade500,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
+                ),
         ),
       ),
     );
   }
 
   Widget _buildCurrentLocationBox() {
-    return DottedBorder(
-      options: RoundedRectDottedBorderOptions(
-        color: const Color(0xFF9CCC65),
-        strokeWidth: 1.5,
-        dashPattern: const [8, 4],
-        radius: const Radius.circular(12),
-      ),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF1F8E9),
-          borderRadius: BorderRadius.circular(12),
+    return GestureDetector(
+      onTap: _isGettingLocation ? null : _getCurrentLocation,
+      child: DottedBorder(
+        options: RoundedRectDottedBorderOptions(
+          color: const Color(0xFF9CCC65),
+          strokeWidth: 1.5,
+          dashPattern: const [8, 4],
+          radius: const Radius.circular(12),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.location_on, color: Colors.black87, size: 24),
-            const SizedBox(height: 8),
-            const Text(
-              'Use Current Location',
-              style: TextStyle(
-                color: Color(0xFF387015),
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Tap to enable GPS',
-              style: TextStyle(
-                color: Color(0xFF387015),
-                fontSize: 10,
-              ),
-            ),
-          ],
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF1F8E9),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (_isGettingLocation)
+                const SizedBox(
+                  height: 24,
+                  width: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF387015)),
+                )
+              else ...[
+                const Icon(Icons.location_on, color: Colors.black87, size: 24),
+                const SizedBox(height: 8),
+                const Text(
+                  'Use Current Location',
+                  style: TextStyle(
+                    color: Color(0xFF387015),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Tap to enable GPS',
+                  style: TextStyle(
+                    color: Color(0xFF387015),
+                    fontSize: 10,
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );

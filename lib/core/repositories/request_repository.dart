@@ -39,4 +39,19 @@ class RequestRepository {
         return docs.map((doc) => RequestModel.fromMap(doc.data(), doc.id)).toList();
       });
   }
+  // Get stream of requests for a specific farmer
+  Stream<List<RequestModel>> getRequestsByFarmer(String farmerId) {
+    return _firestore.collection('requests')
+      .where('farmerId', isEqualTo: farmerId)
+      .snapshots()
+      .map((snapshot) {
+        final docs = snapshot.docs;
+        docs.sort((a, b) {
+          final aTime = (a.data()['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now();
+          final bTime = (b.data()['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now();
+          return bTime.compareTo(aTime);
+        });
+        return docs.map((doc) => RequestModel.fromMap(doc.data(), doc.id)).toList();
+      });
+  }
 }

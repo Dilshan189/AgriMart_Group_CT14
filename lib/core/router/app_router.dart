@@ -7,6 +7,7 @@ import '../../features/farmer/product/presentation/pages/add_product_page.dart';
 import '../../features/farmer/product/presentation/pages/my_products_page.dart';
 import '../../features/buyer/product/presentation/pages/buyer_product_details_page.dart';
 import '../../features/buyer/product/presentation/pages/buyer_place_request_page.dart';
+import '../../features/buyer/requests/presentation/pages/buyer_post_open_request_page.dart';
 
 import '../models/product_model.dart';
 
@@ -19,6 +20,7 @@ class AppRouter {
   static const String myProducts = '/myProducts';
   static const String buyerProductDetails = '/buyerProductDetails';
   static const String buyerPlaceRequest = '/buyerPlaceRequest';
+  static const String buyerPostOpenRequest = '/buyerPostOpenRequest';
 
   static Route<dynamic> _errorRoute() {
     return MaterialPageRoute(
@@ -61,12 +63,10 @@ class AppRouter {
           );
         }
         return _errorRoute();
-
+      case buyerPostOpenRequest:
+        return MaterialPageRoute(builder: (_) => const BuyerPostOpenRequestPage());
       default:
-        return MaterialPageRoute(
-          builder: (_) =>
-              const Scaffold(body: Center(child: Text('Page not found'))),
-        );
+        return _errorRoute();
     }
   }
 }

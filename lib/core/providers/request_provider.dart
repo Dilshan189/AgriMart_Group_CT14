@@ -20,6 +20,14 @@ final buyerRequestsProvider = StreamProvider.autoDispose<List<RequestModel>>((re
   return const Stream.empty();
 });
 
+final farmerRequestsProvider = StreamProvider.autoDispose<List<RequestModel>>((ref) {
+  final user = ref.watch(authStateProvider).value;
+  if (user != null) {
+    return ref.watch(requestRepositoryProvider).getRequestsByFarmer(user.uid);
+  }
+  return const Stream.empty();
+});
+
 class RequestController extends StateNotifier<AsyncValue<void>> {
   final RequestRepository _requestRepository;
 
