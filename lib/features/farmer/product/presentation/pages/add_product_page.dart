@@ -388,7 +388,7 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
                         const Icon(Icons.image_outlined, color: Colors.black87, size: 32),
                         const SizedBox(height: 8),
                         const Text(
-                          'Tap to upload product photo',
+                          'Tap to upload product photo (Optional)',
                           style: TextStyle(
                             color: Color(0xFF387015),
                             fontSize: 12,
