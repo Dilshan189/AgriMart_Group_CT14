@@ -12,25 +12,44 @@ class AuthRepository {
 
   Future<UserModel?> getCurrentUserModel() async {
     if (currentUser == null) return null;
-    final doc = await _firestore.collection('users').doc(currentUser!.uid).get();
+    final doc = await _firestore
+        .collection('users')
+        .doc(currentUser!.uid)
+        .get();
     if (doc.exists) {
       return UserModel.fromMap(doc.data()!, doc.id);
     }
     return null;
   }
 
-  Future<UserCredential> signInWithEmailAndPassword(String email, String password) async {
-    return await _auth.signInWithEmailAndPassword(email: email, password: password);
+  Future<UserCredential> signInWithEmailAndPassword(
+    String email,
+    String password,
+  ) async {
+    return await _auth.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
   }
 
-  Future<UserCredential> registerWithEmailAndPassword(String email, String password, Map<String, dynamic> userData) async {
-    final credential = await _auth.createUserWithEmailAndPassword(email: email, password: password);
-    
+  Future<UserCredential> registerWithEmailAndPassword(
+    String email,
+    String password,
+    Map<String, dynamic> userData,
+  ) async {
+    final credential = await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+
     // Save user data to Firestore
     if (credential.user != null) {
       userData['createdAt'] = FieldValue.serverTimestamp();
       userData['email'] = email;
-      await _firestore.collection('users').doc(credential.user!.uid).set(userData);
+      await _firestore
+          .collection('users')
+          .doc(credential.user!.uid)
+          .set(userData);
     }
     return credential;
   }
