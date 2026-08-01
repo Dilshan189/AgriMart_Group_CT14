@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../features/comman/splash/presentation/pages/splash_page.dart';
+import '../../features/comman/splash/presentation/pages/wellcome_page.dart';
 import '../../features/comman/auth/presentation/pages/login_page.dart';
 import '../../features/comman/auth/presentation/pages/register_page.dart';
 import '../../features/farmer/home/presentation/pages/home_page.dart';
