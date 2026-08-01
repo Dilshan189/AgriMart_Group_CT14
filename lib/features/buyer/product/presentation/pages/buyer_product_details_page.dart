@@ -52,7 +52,18 @@ class BuyerProductDetailsPage extends StatelessWidget {
               decoration: BoxDecoration(
                 color: const Color(0xFFE8F5E9),
                 borderRadius: BorderRadius.circular(16),
+                image: product.imageUrl != null && product.imageUrl!.isNotEmpty
+                    ? DecorationImage(
+                        image: NetworkImage(product.imageUrl!),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
               ),
+              child: product.imageUrl == null || product.imageUrl!.isEmpty
+                  ? const Center(
+                      child: Icon(Icons.image, size: 64, color: Colors.grey),
+                    )
+                  : null,
             ),
             const SizedBox(height: 20),
 

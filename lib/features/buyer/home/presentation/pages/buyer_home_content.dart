@@ -209,8 +209,11 @@ class _BuyerHomeContentState extends ConsumerState<BuyerHomeContent> {
     
     return GestureDetector(
       onTap: () {
-        // You might want to pass the product object here
-        Navigator.pushNamed(context, '/buyerProductDetails');
+        Navigator.pushNamed(
+          context, 
+          '/buyerProductDetails',
+          arguments: product,
+        );
       },
       child: Container(
         padding: const EdgeInsets.all(12),

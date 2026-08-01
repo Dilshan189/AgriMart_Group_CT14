@@ -143,7 +143,16 @@ class _BuyerPlaceRequestPageState extends ConsumerState<BuyerPlaceRequestPage> {
                     decoration: BoxDecoration(
                       color: const Color(0xFFDCEED9),
                       borderRadius: BorderRadius.circular(12),
+                      image: widget.product.imageUrl != null && widget.product.imageUrl!.isNotEmpty
+                          ? DecorationImage(
+                              image: NetworkImage(widget.product.imageUrl!),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
                     ),
+                    child: widget.product.imageUrl == null || widget.product.imageUrl!.isEmpty
+                        ? const Icon(Icons.image, color: Colors.grey)
+                        : null,
                   ),
                   const SizedBox(width: 12),
                   Expanded(
