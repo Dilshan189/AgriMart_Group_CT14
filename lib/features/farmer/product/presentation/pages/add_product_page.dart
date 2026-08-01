@@ -146,7 +146,7 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
         description: description,
         price: double.tryParse(priceText) ?? 0,
         createdAt: widget.productToEdit?.createdAt ?? DateTime.now(),
-        status: widget.productToEdit?.status ?? 'active',
+        status: widget.productToEdit?.status ?? 'pending',
         imageUrl: widget.productToEdit?.imageUrl, // Preserve existing image if editing
       );
 

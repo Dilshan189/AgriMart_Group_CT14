@@ -38,7 +38,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     if (_selectedRole == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select your role (Farmer, Buyer, or Officer)')),
+        const SnackBar(
+          content: Text('Please select your role (Farmer, Buyer, or Officer)'),
+        ),
       );
       return;
     }
@@ -53,30 +55,38 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     }
 
     try {
-      await ref.read(authControllerProvider.notifier).signIn(finalEmail, password);
-      
+      await ref
+          .read(authControllerProvider.notifier)
+          .signIn(finalEmail, password);
+
       // Fetch user role and navigate
-      final userModel = await ref.read(authRepositoryProvider).getCurrentUserModel();
+      final userModel = await ref
+          .read(authRepositoryProvider)
+          .getCurrentUserModel();
       if (userModel != null && mounted) {
         if (userModel.role != _selectedRole) {
           // Role mismatch
           await ref.read(authControllerProvider.notifier).signOut();
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('You are not registered as a ${_selectedRole!.toUpperCase()}')),
+            SnackBar(
+              content: Text(
+                'You are not registered as a ${_selectedRole!.toUpperCase()}',
+              ),
+            ),
           );
           return;
         }
-        
+
         // Clear fields on successful login
         _emailController.clear();
         _passwordController.clear();
         setState(() {
           _selectedRole = null;
         });
-        
+
         Navigator.pushReplacementNamed(
-          context, 
-          AppRouter.home, 
+          context,
+          AppRouter.home,
           arguments: userModel.role,
         );
       } else if (mounted) {
@@ -88,14 +98,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       if (mounted) {
         String errorMessage = 'Login failed. Please check your credentials.';
         final errorStr = e.toString().toLowerCase();
-        if (errorStr.contains('user-not-found') || errorStr.contains('invalid-credential') || errorStr.contains('wrong-password')) {
+        if (errorStr.contains('user-not-found') ||
+            errorStr.contains('invalid-credential') ||
+            errorStr.contains('wrong-password')) {
           errorMessage = 'Incorrect email/phone or password.';
         } else if (errorStr.contains('too-many-requests')) {
           errorMessage = 'Too many attempts. Please try again later.';
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(errorMessage)));
       }
     } finally {
       if (mounted) {
@@ -251,7 +263,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     borderSide: BorderSide(
                       color: Colors.grey.shade300,
                       width: 1,
-                    ), 
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -417,7 +429,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected ? const Color(0xFF2E7D32) : Colors.grey.shade600,
+                color: isSelected
+                    ? const Color(0xFF2E7D32)
+                    : Colors.grey.shade600,
               ),
               textAlign: TextAlign.center,
             ),
@@ -428,8 +442,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   void _showForgotPasswordDialog() {
-    final resetEmailController = TextEditingController(text: _emailController.text);
-    
+    final resetEmailController = TextEditingController(
+      text: _emailController.text,
+    );
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -467,14 +483,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
                   labelText: 'Email Address',
-                  prefixIcon: const Icon(Icons.email_outlined, color: Colors.grey),
+                  prefixIcon: const Icon(
+                    Icons.email_outlined,
+                    color: Colors.grey,
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: Colors.grey.shade300),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppTheme.primaryGreen, width: 2),
+                    borderSide: const BorderSide(
+                      color: AppTheme.primaryGreen,
+                      width: 2,
+                    ),
                   ),
                 ),
               ),
@@ -487,23 +509,31 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     final emailOrPhone = resetEmailController.text.trim();
                     if (emailOrPhone.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Please enter your email or phone')),
+                        const SnackBar(
+                          content: Text('Please enter your email or phone'),
+                        ),
                       );
                       return;
                     }
-                    
+
                     Navigator.pop(context); // Close bottom sheet
-                    
+
                     String finalEmail = emailOrPhone;
                     if (!emailOrPhone.contains('@')) {
                       finalEmail = '$emailOrPhone@agrimart.com';
                     }
-                    
+
                     try {
-                      await ref.read(authControllerProvider.notifier).resetPassword(finalEmail);
+                      await ref
+                          .read(authControllerProvider.notifier)
+                          .resetPassword(finalEmail);
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Password reset link sent! Check your email.')),
+                          const SnackBar(
+                            content: Text(
+                              'Password reset link sent! Check your email.',
+                            ),
+                          ),
                         );
                       }
                     } catch (e) {
@@ -512,9 +542,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         if (e.toString().contains('user-not-found')) {
                           errorMessage = 'No user found with this email/phone.';
                         }
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(errorMessage)),
-                        );
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text(errorMessage)));
                       }
                     }
                   },
@@ -525,7 +555,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text('Send Reset Link', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    'Send Reset Link',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
               const SizedBox(height: 32),

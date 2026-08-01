@@ -1,11 +1,62 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/router/app_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../../core/providers/auth_provider.dart';
 
-class SplashPage extends StatelessWidget {
+class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
 
   @override
+  ConsumerState<SplashPage> createState() => _SplashPageState();
+}
+
+class _SplashPageState extends ConsumerState<SplashPage> {
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAuth();
+  }
+
+  Future<void> _checkAuth() async {
+    final repo = ref.read(authRepositoryProvider);
+    if (repo.currentUser != null) {
+      final userModel = await repo.getCurrentUserModel();
+      if (userModel != null && mounted) {
+        Navigator.pushReplacementNamed(
+          context, 
+          AppRouter.home, 
+          arguments: userModel.role,
+        );
+        return;
+      }
+    }
+    
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        body: Stack(
+          children: [
+            Positioned.fill(
+              child: Image.asset('assets/images/Splash.png', fit: BoxFit.cover),
+            ),
+            const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Scaffold(
       body: Stack(
         children: [
