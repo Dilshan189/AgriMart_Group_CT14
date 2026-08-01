@@ -1,13 +1,32 @@
-import 'dart:ui' as BorderType;
-
 import 'package:flutter/material.dart';
 import 'package:dotted_border/dotted_border.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:agri_mart/core/providers/product_provider.dart';
+import 'package:agri_mart/core/models/product_model.dart';
 
-class BuyerHomeContent extends StatelessWidget {
+class BuyerHomeContent extends ConsumerStatefulWidget {
   const BuyerHomeContent({super.key});
 
   @override
+  ConsumerState<BuyerHomeContent> createState() => _BuyerHomeContentState();
+}
+
+class _BuyerHomeContentState extends ConsumerState<BuyerHomeContent> {
+  String _searchQuery = '';
+  String _selectedCategory = 'ALL';
+
+  final List<String> _categories = [
+    'ALL',
+    '🍅 Fruits',
+    '🥦 Vegetables',
+    '🌾 Grains',
+    '🌿 Herbs'
+  ];
+
+  @override
   Widget build(BuildContext context) {
+    final productsAsyncValue = ref.watch(allProductsProvider);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -31,8 +50,13 @@ class BuyerHomeContent extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.grey.shade300),
             ),
-            child: const TextField(
-              decoration: InputDecoration(
+            child: TextField(
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value.toLowerCase();
+                });
+              },
+              decoration: const InputDecoration(
                 hintText: 'Search products, farmers...',
                 hintStyle: TextStyle(color: Colors.grey),
                 prefixIcon: Icon(Icons.search, color: Colors.grey),
@@ -47,17 +71,19 @@ class BuyerHomeContent extends StatelessWidget {
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
-              children: [
-                _buildCategoryChip('ALL', isSelected: true),
-                const SizedBox(width: 8),
-                _buildCategoryChip('🍅 Fruits'),
-                const SizedBox(width: 8),
-                _buildCategoryChip('🥦 Vegetables'),
-                const SizedBox(width: 8),
-                _buildCategoryChip('🌾 Grains'),
-                const SizedBox(width: 8),
-                _buildCategoryChip('🌿 Herbs'),
-              ],
+              children: _categories.map((category) {
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _selectedCategory = category;
+                      });
+                    },
+                    child: _buildCategoryChip(category, isSelected: _selectedCategory == category),
+                  ),
+                );
+              }).toList(),
             ),
           ),
           const SizedBox(height: 20),
@@ -107,31 +133,47 @@ class BuyerHomeContent extends StatelessWidget {
           const SizedBox(height: 12),
 
           // Products List
-          _buildProductCard(
-            context: context,
-            name: 'Organic Spinach',
-            farmer: 'Kumarasinghe',
-            location: 'Colombo',
-            price: 'Rs. 120/kg',
-            isAvailable: true,
-          ),
-          const SizedBox(height: 12),
-          _buildProductCard(
-            context: context,
-            name: 'Fresh Tomatoes',
-            farmer: 'Ahamed N.',
-            location: 'Gampaha',
-            price: 'Rs. 95/kg',
-            isAvailable: true,
-          ),
-          const SizedBox(height: 12),
-          _buildProductCard(
-            context: context,
-            name: 'Carrots',
-            farmer: 'Sandeepa K.',
-            location: 'Kandy',
-            price: 'Rs. 95/kg',
-            isAvailable: false,
+          productsAsyncValue.when(
+            data: (products) {
+              // Filter products
+              var filteredProducts = products.where((product) {
+                final matchesSearch = product.name.toLowerCase().contains(_searchQuery) ||
+                                      product.farmerName.toLowerCase().contains(_searchQuery);
+                
+                final matchesCategory = _selectedCategory == 'ALL' || 
+                                        product.category.toLowerCase() == _selectedCategory.replaceAll(RegExp(r'[^\w\s]'), '').trim().toLowerCase();
+
+                // Only show active/available products in marketplace
+                final isActive = product.status != 'flagged';
+                
+                return matchesSearch && matchesCategory && isActive;
+              }).toList();
+
+              if (filteredProducts.isEmpty) {
+                return const Padding(
+                  padding: EdgeInsets.all(20.0),
+                  child: Center(
+                    child: Text('No products found matching your criteria.'),
+                  ),
+                );
+              }
+
+              return Column(
+                children: filteredProducts.map((product) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12.0),
+                    child: _buildProductCard(
+                      context: context,
+                      product: product,
+                    ),
+                  );
+                }).toList(),
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, stack) => Center(
+              child: Text('Error loading products: $error', style: const TextStyle(color: Colors.red)),
+            ),
           ),
         ],
       ),
@@ -161,14 +203,13 @@ class BuyerHomeContent extends StatelessWidget {
 
   Widget _buildProductCard({
     required BuildContext context,
-    required String name,
-    required String farmer,
-    required String location,
-    required String price,
-    required bool isAvailable,
+    required ProductModel product,
   }) {
+    final bool isAvailable = product.quantity > 0;
+    
     return GestureDetector(
       onTap: () {
+        // You might want to pass the product object here
         Navigator.pushNamed(context, '/buyerProductDetails');
       },
       child: Container(
@@ -187,79 +228,88 @@ class BuyerHomeContent extends StatelessWidget {
         child: Row(
           children: [
             // Image Placeholder
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF0F4EF),
-              borderRadius: BorderRadius.circular(8),
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF0F4EF),
+                borderRadius: BorderRadius.circular(8),
+                image: product.imageUrl != null && product.imageUrl!.isNotEmpty
+                    ? DecorationImage(
+                        image: NetworkImage(product.imageUrl!),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
+              ),
+              child: product.imageUrl == null || product.imageUrl!.isEmpty
+                  ? const Icon(Icons.image, color: Colors.grey)
+                  : null,
             ),
-          ),
-          const SizedBox(width: 12),
-          // Details
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      name,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: isAvailable ? Colors.green.withOpacity(0.1) : Colors.orange.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        isAvailable ? 'Available' : 'Low Stock',
-                        style: TextStyle(
-                          color: isAvailable ? Colors.green.shade700 : Colors.orange.shade800,
-                          fontSize: 10,
+            const SizedBox(width: 12),
+            // Details
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        product.name,
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
+                          fontSize: 15,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const Text('🧑‍🌾', style: TextStyle(fontSize: 12)),
-                    const SizedBox(width: 4),
-                    Text(
-                      farmer,
-                      style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                    ),
-                    const SizedBox(width: 12),
-                    Icon(Icons.location_on, size: 12, color: Colors.grey.shade600),
-                    const SizedBox(width: 2),
-                    Text(
-                      location,
-                      style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  price,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green,
-                    fontSize: 14,
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: isAvailable ? Colors.green.withOpacity(0.1) : Colors.orange.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          isAvailable ? 'Available' : 'Low Stock',
+                          style: TextStyle(
+                            color: isAvailable ? Colors.green.shade700 : Colors.orange.shade800,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Text('🧑‍🌾', style: TextStyle(fontSize: 12)),
+                      const SizedBox(width: 4),
+                      Text(
+                        product.farmerName.isEmpty ? 'Farmer' : product.farmerName,
+                        style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                      ),
+                      const SizedBox(width: 12),
+                      Icon(Icons.location_on, size: 12, color: Colors.grey.shade600),
+                      const SizedBox(width: 2),
+                      Text(
+                        product.location.isEmpty ? 'Unknown' : product.location,
+                        style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Rs. ${product.price}/${product.unit}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
       ),
     );
   }

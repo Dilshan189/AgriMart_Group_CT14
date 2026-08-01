@@ -25,13 +25,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     super.dispose();
   }
 
-  void _login(String role) async {
-    final email = _emailController.text.trim().replaceAll(' ', '');
+  void _login() async {
+    final emailOrPhone = _emailController.text.trim().replaceAll(' ', '');
     final password = _passwordController.text.trim();
 
-    if (email.isEmpty || password.isEmpty) {
+    if (emailOrPhone.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter email and password')),
+      );
+      return;
+    }
+
+    if (_selectedRole == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select your role (Farmer, Buyer, or Officer)')),
       );
       return;
     }
@@ -40,17 +47,22 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       _isLoading = true;
     });
 
+    String finalEmail = emailOrPhone;
+    if (!emailOrPhone.contains('@')) {
+      finalEmail = '$emailOrPhone@agrimart.com';
+    }
+
     try {
-      await ref.read(authControllerProvider.notifier).signIn(email, password);
+      await ref.read(authControllerProvider.notifier).signIn(finalEmail, password);
       
       // Fetch user role and navigate
       final userModel = await ref.read(authRepositoryProvider).getCurrentUserModel();
       if (userModel != null && mounted) {
-        if (userModel.role != role) {
+        if (userModel.role != _selectedRole) {
           // Role mismatch
           await ref.read(authControllerProvider.notifier).signOut();
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('You are not registered as a ${role.toUpperCase()}')),
+            SnackBar(content: Text('You are not registered as a ${_selectedRole!.toUpperCase()}')),
           );
           return;
         }
@@ -256,19 +268,52 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   ),
                 ),
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 30),
+              const SizedBox(height: 32),
+              // Login Button
+              SizedBox(
+                width: double.infinity,
+                height: 54,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _login,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryGreen,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.5,
+                          ),
+                        )
+                      : const Text(
+                          'Login',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                ),
+              ),
+              const SizedBox(height: 32),
               Row(
                 children: [
                   Expanded(
                     child: _buildRoleButton(
                       '🧑‍🌾',
-                      'Login as Farmer',
+                      'Farmer',
                       isSelected: _selectedRole == 'farmer',
                       onTap: () {
                         setState(() {
                           _selectedRole = 'farmer';
                         });
-                        _login('farmer');
                       },
                     ),
                   ),
@@ -276,13 +321,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   Expanded(
                     child: _buildRoleButton(
                       '🛒',
-                      'Login as Buyer',
+                      'Buyer',
                       isSelected: _selectedRole == 'buyer',
                       onTap: () {
                         setState(() {
                           _selectedRole = 'buyer';
                         });
-                        _login('buyer');
                       },
                     ),
                   ),
@@ -290,19 +334,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   Expanded(
                     child: _buildRoleButton(
                       '👨‍💼',
-                      'Login as Officer',
+                      'Officer',
                       isSelected: _selectedRole == 'officer',
                       onTap: () {
                         setState(() {
                           _selectedRole = 'officer';
                         });
-                        _login('officer');
                       },
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 24),
               // Register Link
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,

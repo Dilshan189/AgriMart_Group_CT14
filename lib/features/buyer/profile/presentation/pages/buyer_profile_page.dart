@@ -1,212 +1,246 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:agri_mart/core/providers/auth_provider.dart';
+import 'package:agri_mart/core/models/user_model.dart';
 
-class BuyerProfilePage extends StatelessWidget {
+class BuyerProfilePage extends ConsumerWidget {
   const BuyerProfilePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userAsyncValue = ref.watch(currentUserProvider);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9F9),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Top Header Section (Blue Background)
-            Container(
-              color: const Color(0xFF1976D2), // Standard Blue
-              padding: const EdgeInsets.only(top: 50, left: 20, right: 20, bottom: 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // App Bar Row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Profile',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
+      body: userAsyncValue.when(
+        data: (user) {
+          if (user == null) {
+            return const Center(child: Text('User not found. Please log in again.'));
+          }
+          return _buildProfileContent(context, ref, user);
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) => Center(
+          child: Text('Error loading profile: $error', style: const TextStyle(color: Colors.red)),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileContent(BuildContext context, WidgetRef ref, UserModel user) {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          // Top Header Section (Blue Background)
+          Container(
+            color: const Color(0xFF1976D2), // Standard Blue
+            padding: const EdgeInsets.only(top: 50, left: 20, right: 20, bottom: 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // App Bar Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Profile',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                       ),
-                      GestureDetector(
-                        onTap: () {},
-                        child: const Row(
-                          children: [
-                            Icon(Icons.edit, color: Colors.orangeAccent, size: 16),
-                            SizedBox(width: 4),
-                            Text(
-                              'Edit',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                              ),
+                    ),
+                    GestureDetector(
+                      onTap: () {},
+                      child: const Row(
+                        children: [
+                          Icon(Icons.edit, color: Colors.orangeAccent, size: 16),
+                          SizedBox(width: 4),
+                          Text(
+                            'Edit',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
                             ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  
-                  // User Info Row
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Avatar
-                      Container(
-                        width: 70,
-                        height: 70,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
-                        ),
-                        child: const Center(
-                          child: Icon(
-                            Icons.shopping_cart_outlined,
-                            color: Colors.black54,
-                            size: 32,
                           ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                
+                // User Info Row
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Avatar
+                    Container(
+                      width: 70,
+                      height: 70,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.person,
+                          color: Colors.white,
+                          size: 32,
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      // Text Info
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Kumarasinghe\nK.M.B.S.S',
+                    ),
+                    const SizedBox(width: 16),
+                    // Text Info
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            user.name,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                              height: 1.2,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Buyer - ${user.district ?? 'Unknown District'}',
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          // Badge Button
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.white.withOpacity(0.4)),
+                            ),
+                            child: const Text(
+                              '0 Orders placed', // Replace with real data when order module is ready
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                height: 1.2,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              'Buyer - Colombo District',
-                              style: TextStyle(
-                                color: Colors.white70,
                                 fontSize: 12,
                               ),
                             ),
-                            const SizedBox(height: 12),
-                            // Badge Button
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.white.withOpacity(0.4)),
-                              ),
-                              child: const Text(
-                                '4 Orders placed',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                ],
-              ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+              ],
             ),
-            
-            // Stats Row (Dark Blue Background)
-            Container(
-              color: const Color(0xFF153448), // Dark Blue Navy
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildStatItem('4', 'Orders'),
-                  _buildDivider(),
-                  _buildStatItem('3', 'Accepted'),
-                  _buildDivider(),
-                  _buildStatItem('2', 'Saved'),
-                ],
-              ),
+          ),
+          
+          // Stats Row (Dark Blue Background)
+          Container(
+            color: const Color(0xFF153448), // Dark Blue Navy
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildStatItem('0', 'Orders'),
+                _buildDivider(),
+                _buildStatItem('0', 'Accepted'),
+                _buildDivider(),
+                _buildStatItem('0', 'Saved'),
+              ],
             ),
-            
-            // Menu List
-            Container(
-              color: Colors.white,
-              child: Column(
-                children: [
-                  _buildMenuItem(
-                    icon: Icons.person_outline,
-                    title: 'Personal Info',
-                    subtitle: 'Name, phone, email',
-                  ),
-                  _buildListDivider(),
-                  _buildMenuItem(
-                    icon: Icons.add_circle_outline,
-                    title: 'Post a Request',
-                    subtitle: 'Request a product from farmers',
-                    iconColor: Colors.green,
-                    bgColor: Colors.green.shade50,
-                    onTap: () {
-                      Navigator.pushNamed(context, '/buyerPostOpenRequest');
-                    },
-                  ),
-                  _buildListDivider(),
-                  _buildMenuItem(
-                    icon: Icons.receipt_long_outlined,
-                    title: 'My Orders',
-                    subtitle: '4 orders placed',
-                  ),
-                  _buildListDivider(),
-                  _buildMenuItem(
-                    icon: Icons.favorite_border,
-                    title: 'Saved Products',
-                    subtitle: '2 saved items',
-                  ),
-                  _buildListDivider(),
-                  _buildMenuItem(
-                    icon: Icons.location_on_outlined,
-                    title: 'Delivery Address',
-                    subtitle: 'Colombo 07',
-                  ),
-                  _buildListDivider(),
-                  _buildMenuItem(
-                    icon: Icons.notifications_none,
-                    title: 'Notifications',
-                    subtitle: 'Manage alerts',
-                    iconColor: Colors.orange,
-                    bgColor: Colors.orange.withOpacity(0.1),
-                  ),
-                  _buildListDivider(),
-                  _buildMenuItem(
-                    icon: Icons.lock_outline,
-                    title: 'Change Password',
-                    subtitle: 'Security settings',
-                    iconColor: Colors.amber,
-                    bgColor: Colors.amber.withOpacity(0.1),
-                  ),
-                  _buildListDivider(),
-                  _buildMenuItem(
-                    icon: Icons.exit_to_app,
-                    title: 'Logout',
-                    subtitle: '',
-                    iconColor: Colors.red,
-                    bgColor: Colors.red.withOpacity(0.1),
-                    titleColor: Colors.red,
-                    isLogout: true,
-                  ),
-                  const SizedBox(height: 20),
-                ],
-              ),
+          ),
+          
+          // Menu List
+          Container(
+            color: Colors.white,
+            child: Column(
+              children: [
+                _buildMenuItem(
+                  icon: Icons.person_outline,
+                  title: 'Personal Info',
+                  subtitle: '${user.email} ${user.phone != null ? '• ${user.phone}' : ''}',
+                ),
+                _buildListDivider(),
+                _buildMenuItem(
+                  icon: Icons.add_circle_outline,
+                  title: 'Post a Request',
+                  subtitle: 'Request a product from farmers',
+                  iconColor: Colors.green,
+                  bgColor: Colors.green.shade50,
+                  onTap: () {
+                    Navigator.pushNamed(context, '/buyerPostOpenRequest');
+                  },
+                ),
+                _buildListDivider(),
+                _buildMenuItem(
+                  icon: Icons.receipt_long_outlined,
+                  title: 'My Orders',
+                  subtitle: '0 orders placed',
+                ),
+                _buildListDivider(),
+                _buildMenuItem(
+                  icon: Icons.favorite_border,
+                  title: 'Saved Products',
+                  subtitle: '0 saved items',
+                ),
+                _buildListDivider(),
+                _buildMenuItem(
+                  icon: Icons.location_on_outlined,
+                  title: 'Delivery Address',
+                  subtitle: user.district ?? 'Not specified',
+                ),
+                _buildListDivider(),
+                _buildMenuItem(
+                  icon: Icons.notifications_none,
+                  title: 'Notifications',
+                  subtitle: 'Manage alerts',
+                  iconColor: Colors.orange,
+                  bgColor: Colors.orange.withOpacity(0.1),
+                ),
+                _buildListDivider(),
+                _buildMenuItem(
+                  icon: Icons.lock_outline,
+                  title: 'Change Password',
+                  subtitle: 'Security settings',
+                  iconColor: Colors.amber,
+                  bgColor: Colors.amber.withOpacity(0.1),
+                ),
+                _buildListDivider(),
+                _buildMenuItem(
+                  icon: Icons.exit_to_app,
+                  title: 'Logout',
+                  subtitle: '',
+                  iconColor: Colors.red,
+                  bgColor: Colors.red.withOpacity(0.1),
+                  titleColor: Colors.red,
+                  isLogout: true,
+                  onTap: () async {
+                    try {
+                      await ref.read(authControllerProvider.notifier).signOut();
+                      if (context.mounted) {
+                        Navigator.of(context).pushReplacementNamed('/login');
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error logging out: $e')),
+                        );
+                      }
+                    }
+                  },
+                ),
+                const SizedBox(height: 20),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -310,3 +344,4 @@ class BuyerProfilePage extends StatelessWidget {
     );
   }
 }
+

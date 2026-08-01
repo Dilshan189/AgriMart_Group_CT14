@@ -42,12 +42,12 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
   void _register() async {
     final name = _nameController.text.trim();
-    final email = _emailController.text.trim().replaceAll(' ', '');
+    final emailOrPhone = _emailController.text.trim().replaceAll(' ', '');
     final district = _selectedDistrict ?? '';
     final password = _passwordController.text.trim();
     final confirmPassword = _confirmPasswordController.text.trim();
 
-    if (name.isEmpty || email.isEmpty || password.isEmpty || district.isEmpty) {
+    if (name.isEmpty || emailOrPhone.isEmpty || password.isEmpty || district.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill all fields and select a district')),
       );
@@ -69,15 +69,22 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       _isLoading = true;
     });
 
+    String finalEmail = emailOrPhone;
+    if (!emailOrPhone.contains('@')) {
+      // If it doesn't contain @, assume it's a phone number and append a dummy domain
+      finalEmail = '$emailOrPhone@agrimart.com';
+    }
+
     try {
       final Map<String, dynamic> userData = {
         'name': name,
         'role': role,
         'district': district,
         'status': 'approved',
+        'contact': emailOrPhone, // Save original input
       };
       
-      await ref.read(authControllerProvider.notifier).register(email, password, userData);
+      await ref.read(authControllerProvider.notifier).register(finalEmail, password, userData);
       
       if (mounted) {
         Navigator.pushReplacementNamed(
