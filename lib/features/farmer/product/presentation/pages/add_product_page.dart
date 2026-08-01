@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
 import '../../../../../core/providers/product_provider.dart';
 import '../../../../../core/providers/auth_provider.dart';
 import '../../../../../core/models/product_model.dart';
@@ -134,6 +135,16 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
         throw Exception('User not logged in');
       }
 
+      String? finalImageUrl = widget.productToEdit?.imageUrl;
+      
+      if (_selectedImage != null) {
+        final storageRef = FirebaseStorage.instance
+            .ref()
+            .child('products/${DateTime.now().millisecondsSinceEpoch}.jpg');
+        await storageRef.putFile(File(_selectedImage!.path));
+        finalImageUrl = await storageRef.getDownloadURL();
+      }
+
       final product = ProductModel(
         id: widget.productToEdit?.id ?? '', // Firestore auto-generates this if we use doc().set() in repo
         farmerId: user.id,
@@ -147,7 +158,7 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
         price: double.tryParse(priceText) ?? 0,
         createdAt: widget.productToEdit?.createdAt ?? DateTime.now(),
         status: widget.productToEdit?.status ?? 'pending',
-        imageUrl: widget.productToEdit?.imageUrl, // Preserve existing image if editing
+        imageUrl: finalImageUrl,
       );
 
       if (widget.productToEdit != null) {

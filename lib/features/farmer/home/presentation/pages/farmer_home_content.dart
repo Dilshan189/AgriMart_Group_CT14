@@ -132,7 +132,7 @@ class FarmerHomeContent extends ConsumerWidget {
                 );
               }
               return Column(
-                children: newRequests.take(3).map((r) => _buildRequestCard(r)).toList(),
+                children: newRequests.take(3).map((r) => _buildRequestCard(r, ref)).toList(),
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
@@ -271,7 +271,7 @@ class FarmerHomeContent extends ConsumerWidget {
     );
   }
 
-  Widget _buildRequestCard(RequestModel request) {
+  Widget _buildRequestCard(RequestModel request, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Container(
@@ -312,24 +312,63 @@ class FarmerHomeContent extends ConsumerWidget {
                     'Buyer: ${request.buyerName} · ${request.quantity} kg',
                     style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                   ),
+                  const SizedBox(height: 8),
+                  if (request.status == 'pending')
+                    Row(
+                      children: [
+                        ElevatedButton(
+                          onPressed: () {
+                            ref.read(requestControllerProvider.notifier).updateRequestStatus(request.id, 'accepted');
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF2E7D32),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            minimumSize: Size.zero,
+                          ),
+                          child: const Text('Accept', style: TextStyle(fontSize: 12, color: Colors.white)),
+                        ),
+                        const SizedBox(width: 8),
+                        OutlinedButton(
+                          onPressed: () {
+                            ref.read(requestControllerProvider.notifier).updateRequestStatus(request.id, 'rejected');
+                          },
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            minimumSize: Size.zero,
+                            side: const BorderSide(color: Colors.red),
+                          ),
+                          child: const Text('Reject', style: TextStyle(fontSize: 12, color: Colors.red)),
+                        ),
+                      ],
+                    )
+                  else
+                    Text(
+                      'Status: ${request.status.toUpperCase()}',
+                      style: TextStyle(
+                        fontSize: 12, 
+                        fontWeight: FontWeight.bold,
+                        color: request.status == 'accepted' ? Colors.green : Colors.grey,
+                      ),
+                    ),
                 ],
               ),
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: const Color(0xFFE3F2FD),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Text(
-                'NEW',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1565C0),
+            if (request.status == 'pending')
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE3F2FD),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  'NEW',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1565C0),
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),
