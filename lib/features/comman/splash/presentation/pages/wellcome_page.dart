@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../../core/router/app_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/providers/auth_provider.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
@@ -24,6 +25,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
     if (repo.currentUser != null) {
       final userModel = await repo.getCurrentUserModel();
       if (userModel != null && mounted) {
+        FlutterNativeSplash.remove();
         Navigator.pushReplacementNamed(
           context, 
           AppRouter.home, 
@@ -34,6 +36,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
     }
     
     if (mounted) {
+      FlutterNativeSplash.remove();
       setState(() {
         _isLoading = false;
       });

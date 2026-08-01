@@ -151,14 +151,21 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
-        Container(
-          margin: const EdgeInsets.only(right: 16),
-          padding: const EdgeInsets.all(6),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
+        GestureDetector(
+          onTap: () {
+            setState(() {
+              _selectedIndex = 4;
+            });
+          },
+          child: Container(
+            margin: const EdgeInsets.only(right: 16),
+            padding: const EdgeInsets.all(6),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+            ),
+            child: const Text('👤', style: TextStyle(fontSize: 20)),
           ),
-          child: const Text('👤', style: TextStyle(fontSize: 20)),
         ),
       ],
     );
