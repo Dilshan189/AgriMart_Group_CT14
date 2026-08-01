@@ -67,6 +67,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           return;
         }
         
+        // Clear fields on successful login
+        _emailController.clear();
+        _passwordController.clear();
+        setState(() {
+          _selectedRole = null;
+        });
+        
         Navigator.pushReplacementNamed(
           context, 
           AppRouter.home, 
@@ -79,8 +86,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       }
     } catch (e) {
       if (mounted) {
+        String errorMessage = 'Login failed. Please check your credentials.';
+        final errorStr = e.toString().toLowerCase();
+        if (errorStr.contains('user-not-found') || errorStr.contains('invalid-credential') || errorStr.contains('wrong-password')) {
+          errorMessage = 'Incorrect email/phone or password.';
+        } else if (errorStr.contains('too-many-requests')) {
+          errorMessage = 'Too many attempts. Please try again later.';
+        }
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
+          SnackBar(content: Text(errorMessage)),
         );
       }
     } finally {
@@ -470,18 +484,23 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () async {
-                    final email = resetEmailController.text.trim();
-                    if (email.isEmpty) {
+                    final emailOrPhone = resetEmailController.text.trim();
+                    if (emailOrPhone.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Please enter your email')),
+                        const SnackBar(content: Text('Please enter your email or phone')),
                       );
                       return;
                     }
                     
                     Navigator.pop(context); // Close bottom sheet
                     
+                    String finalEmail = emailOrPhone;
+                    if (!emailOrPhone.contains('@')) {
+                      finalEmail = '$emailOrPhone@agrimart.com';
+                    }
+                    
                     try {
-                      await ref.read(authControllerProvider.notifier).resetPassword(email);
+                      await ref.read(authControllerProvider.notifier).resetPassword(finalEmail);
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Password reset link sent! Check your email.')),
@@ -489,8 +508,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       }
                     } catch (e) {
                       if (mounted) {
+                        String errorMessage = 'Failed to send reset link.';
+                        if (e.toString().contains('user-not-found')) {
+                          errorMessage = 'No user found with this email/phone.';
+                        }
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error: $e')),
+                          SnackBar(content: Text(errorMessage)),
                         );
                       }
                     }

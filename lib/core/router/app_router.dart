@@ -46,7 +46,8 @@ class AppRouter {
         }
         return MaterialPageRoute(builder: (_) => HomePage(userRole: role));
       case addProduct:
-        return MaterialPageRoute(builder: (_) => const AddProductPage());
+        final productToEdit = settings.arguments as ProductModel?;
+        return MaterialPageRoute(builder: (_) => AddProductPage(productToEdit: productToEdit));
       case myProducts:
         return MaterialPageRoute(builder: (_) => const MyProductsPage());
       case buyerProductDetails:

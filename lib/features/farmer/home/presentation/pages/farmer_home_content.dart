@@ -209,8 +209,16 @@ class FarmerHomeContent extends ConsumerWidget {
               decoration: BoxDecoration(
                 color: const Color(0xFFEDF5E1),
                 borderRadius: BorderRadius.circular(8),
+                image: product.imageUrl != null && product.imageUrl!.isNotEmpty
+                    ? DecorationImage(
+                        image: NetworkImage(product.imageUrl!),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
               ),
-              child: const Icon(Icons.inventory, color: Color(0xFF387015)),
+              child: product.imageUrl == null || product.imageUrl!.isEmpty
+                  ? const Icon(Icons.inventory, color: Color(0xFF387015))
+                  : null,
             ),
             const SizedBox(width: 16),
             Expanded(

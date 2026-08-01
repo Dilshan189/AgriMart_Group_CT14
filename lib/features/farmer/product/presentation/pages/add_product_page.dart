@@ -9,7 +9,9 @@ import '../../../../../core/providers/auth_provider.dart';
 import '../../../../../core/models/product_model.dart';
 
 class AddProductPage extends ConsumerStatefulWidget {
-  const AddProductPage({super.key});
+  final ProductModel? productToEdit;
+  
+  const AddProductPage({super.key, this.productToEdit});
 
   @override
   ConsumerState<AddProductPage> createState() => _AddProductPageState();
@@ -29,6 +31,20 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
   XFile? _selectedImage;
   bool _isLoading = false;
   bool _isGettingLocation = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.productToEdit != null) {
+      final p = widget.productToEdit!;
+      _nameController.text = p.name;
+      _categoryController.text = p.category;
+      _quantityController.text = p.quantity.toString();
+      _priceController.text = p.price.toString();
+      _locationController.text = p.location;
+      _descriptionController.text = p.description;
+    }
+  }
 
   @override
   void dispose() {
@@ -119,7 +135,7 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
       }
 
       final product = ProductModel(
-        id: '', // Firestore auto-generates this if we use doc().set() in repo
+        id: widget.productToEdit?.id ?? '', // Firestore auto-generates this if we use doc().set() in repo
         farmerId: user.id,
         farmerName: user.name,
         name: name,
@@ -129,15 +145,20 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
         location: location,
         description: description,
         price: double.tryParse(priceText) ?? 0,
-        createdAt: DateTime.now(),
-        status: 'active', // default status
+        createdAt: widget.productToEdit?.createdAt ?? DateTime.now(),
+        status: widget.productToEdit?.status ?? 'active',
+        imageUrl: widget.productToEdit?.imageUrl, // Preserve existing image if editing
       );
 
-      await ref.read(productControllerProvider.notifier).addProduct(product);
+      if (widget.productToEdit != null) {
+        await ref.read(productControllerProvider.notifier).updateProduct(product);
+      } else {
+        await ref.read(productControllerProvider.notifier).addProduct(product);
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Product added successfully!')),
+          SnackBar(content: Text(widget.productToEdit != null ? 'Product updated successfully!' : 'Product added successfully!')),
         );
         Navigator.pop(context); // Go back after adding
       }
@@ -174,8 +195,8 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
           ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Add Product',
+        title: Text(
+          widget.productToEdit != null ? 'Edit Product' : 'Add Product',
           style: TextStyle(
             color: Colors.white,
             fontSize: 18,
@@ -245,9 +266,9 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
                 ),
                 child: _isLoading 
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text(
-                        'Submit Product',
-                        style: TextStyle(
+                    : Text(
+                        widget.productToEdit != null ? 'Save Changes' : 'Submit Product',
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -340,29 +361,39 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
                     height: 150,
                   ),
                 )
-              : Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.image_outlined, color: Colors.black87, size: 32),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Tap to upload product photo',
-                      style: TextStyle(
-                        color: Color(0xFF387015),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
+              : widget.productToEdit?.imageUrl != null && widget.productToEdit!.imageUrl!.isNotEmpty
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.network(
+                        widget.productToEdit!.imageUrl!,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: 150,
                       ),
+                    )
+                  : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.image_outlined, color: Colors.black87, size: 32),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Tap to upload product photo',
+                          style: TextStyle(
+                            color: Color(0xFF387015),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'JPG, PNG up to 5MB',
+                          style: TextStyle(
+                            color: Colors.grey.shade500,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'JPG, PNG up to 5MB',
-                      style: TextStyle(
-                        color: Colors.grey.shade500,
-                        fontSize: 10,
-                      ),
-                    ),
-                  ],
-                ),
         ),
       ),
     );

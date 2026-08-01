@@ -142,6 +142,7 @@ class _MyProductsPageState extends ConsumerState<MyProductsPage> {
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                     color: isActiveTab ? _green : Colors.grey.shade300,
+          
                     width: isActiveTab ? 1.5 : 1,
                   ),
                 ),
@@ -295,7 +296,18 @@ class _MyProductsPageState extends ConsumerState<MyProductsPage> {
                 decoration: BoxDecoration(
                   color: const Color(0xFFDCEDC8),
                   borderRadius: BorderRadius.circular(8),
+                  image: product.imageUrl != null && product.imageUrl!.isNotEmpty
+                      ? DecorationImage(
+                          image: NetworkImage(product.imageUrl!),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
                 ),
+                child: product.imageUrl == null || product.imageUrl!.isEmpty
+                    ? const Center(
+                        child: Icon(Icons.image, color: Colors.white, size: 28),
+                      )
+                    : null,
               ),
               const SizedBox(width: 12),
               // Details
@@ -497,31 +509,77 @@ class _MyProductsPageState extends ConsumerState<MyProductsPage> {
   }
 
   void _onEdit(ProductModel product) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Edit feature coming soon for ${product.name}'),
-        duration: const Duration(seconds: 1),
-      ),
-    );
+    Navigator.pushNamed(context, '/addProduct', arguments: product);
   }
 
   void _onDelete(ProductModel product) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Delete Product'),
-        content: Text('Are you sure you want to delete "${product.name}"?'),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: const Text(
+          'Delete Listing?',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Permanently remove "${product.name}" from AgriMart?',
+              style: const TextStyle(color: Colors.grey, fontSize: 14),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Buyers will no longer see this product.',
+              style: TextStyle(color: Color(0xFFB71C1C), fontSize: 14),
+            ),
+          ],
+        ),
+        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await ref.read(productControllerProvider.notifier).deleteProduct(product.id);
-            },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Color(0xFFFFCA28)), // Amber/Yellow
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: Color(0xFFFFCA28), fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    await ref.read(productControllerProvider.notifier).deleteProduct(product.id);
+                  },
+                  icon: const Text('🗑️', style: TextStyle(fontSize: 16)),
+                  label: const Text(
+                    'Delete',
+                    style: TextStyle(color: Color(0xFFB71C1C), fontWeight: FontWeight.bold),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Color(0xFFB71C1C)), // Red
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
