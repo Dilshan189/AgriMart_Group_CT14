@@ -18,6 +18,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _nicController = TextEditingController();
   String? _selectedDistrict;
   bool _isLoading = false;
   bool _obscurePassword = true;
@@ -46,10 +47,11 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     final district = _selectedDistrict ?? '';
     final password = _passwordController.text.trim();
     final confirmPassword = _confirmPasswordController.text.trim();
+    final nic = _nicController.text.trim();
 
-    if (name.isEmpty || emailOrPhone.isEmpty || password.isEmpty || district.isEmpty) {
+    if (name.isEmpty || emailOrPhone.isEmpty || password.isEmpty || district.isEmpty || (_selectedRoleIndex == 0 && nic.isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all fields and select a district')),
+        SnackBar(content: Text(_selectedRoleIndex == 0 ? 'Please fill all fields, including NIC, and select a district' : 'Please fill all fields and select a district')),
       );
       return;
     }
@@ -80,8 +82,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         'name': name,
         'role': role,
         'district': district,
-        'status': 'approved',
+        'status': role == 'farmer' ? 'pending' : 'approved',
         'contact': emailOrPhone, // Save original input
+        'nic': nic,
       };
       
       await ref.read(authControllerProvider.notifier).register(finalEmail, password, userData);
@@ -200,6 +203,14 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 autocorrect: false,
               ),
               const SizedBox(height: 16),
+              if (_selectedRoleIndex == 0) ...[
+                _buildInputField(
+                  'NIC', 
+                  'Your National Identity Card number', 
+                  controller: _nicController,
+                ),
+                const SizedBox(height: 16),
+              ],
               const Text(
                 'District',
                 style: TextStyle(

@@ -160,7 +160,7 @@ class _OfficerFarmersPageState extends ConsumerState<OfficerFarmersPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.orange.shade300, width: 1),
+        border: Border.all(color: Colors.blue.shade500, width: 2),
       ),
       child: Column(
         children: [
@@ -243,7 +243,7 @@ class _OfficerFarmersPageState extends ConsumerState<OfficerFarmersPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildInfoRow('NIC:', 'Not Provided'),
+                      _buildInfoRow('NIC:', farmer.nic ?? 'Not Provided'),
                       const SizedBox(height: 6),
                       _buildInfoRow('Phone:', farmer.phone ?? 'Not Provided'),
                     ],
@@ -255,7 +255,7 @@ class _OfficerFarmersPageState extends ConsumerState<OfficerFarmersPage> {
                     children: [
                       _buildInfoRow('District:', farmer.district ?? 'Unknown'),
                       const SizedBox(height: 6),
-                      _buildInfoRow('Applied:', 'Recent'),
+                      _buildInfoRow('Applied:', 'Today'),
                     ],
                   ),
                 ),
@@ -376,7 +376,7 @@ class _OfficerFarmersPageState extends ConsumerState<OfficerFarmersPage> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${farmer.district ?? 'Unknown'} · Active',
+                  '${farmer.district ?? 'Unknown'} · 0 products listed',
                   style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
                 ),
               ],

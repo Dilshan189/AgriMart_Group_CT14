@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../../core/providers/auth_provider.dart';
+import '../../../../../core/providers/user_provider.dart';
 
-class OfficerProfilePage extends StatelessWidget {
+class OfficerProfilePage extends ConsumerWidget {
   const OfficerProfilePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(currentUserProvider);
+    final farmersAsync = ref.watch(farmersProvider);
+    final buyersAsync = ref.watch(buyersProvider);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9F9),
       body: SingleChildScrollView(
@@ -61,15 +68,17 @@ class OfficerProfilePage extends StatelessWidget {
                               color: Colors.pink.shade100,
                               shape: BoxShape.circle,
                             ),
+                            alignment: Alignment.center,
+                            child: const Text('👨‍💼', style: TextStyle(fontSize: 40)),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'Kumarasinghe\nK.M.B.S.S',
-                                  style: TextStyle(
+                                Text(
+                                  user.value?.name ?? 'Loading...',
+                                  style: const TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,
@@ -115,9 +124,21 @@ class OfficerProfilePage extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       child: Row(
                         children: [
-                          Expanded(child: _buildStatItem('24', 'Farmers')),
+                          Expanded(
+                            child: farmersAsync.when(
+                              data: (farmers) => _buildStatItem(farmers.length.toString(), 'Farmers'),
+                              loading: () => _buildStatItem('...', 'Farmers'),
+                              error: (_, __) => _buildStatItem('0', 'Farmers'),
+                            ),
+                          ),
                           Container(width: 1, height: 30, color: Colors.white38),
-                          Expanded(child: _buildStatItem('57', 'Buyers')),
+                          Expanded(
+                            child: buyersAsync.when(
+                              data: (buyers) => _buildStatItem(buyers.length.toString(), 'Buyers'),
+                              loading: () => _buildStatItem('...', 'Buyers'),
+                              error: (_, __) => _buildStatItem('0', 'Buyers'),
+                            ),
+                          ),
                           Container(width: 1, height: 30, color: Colors.white38),
                           Expanded(child: _buildStatItem('3', 'Zone')),
                         ],
@@ -133,13 +154,13 @@ class OfficerProfilePage extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 16.0),
               child: Column(
                 children: [
-                  _buildListTile('👤', 'Officer Info', 'Name, ID, department'),
-                  _buildListTile('🗺️', 'Zone Management', 'Zone 3 · Colombo District'),
-                  _buildListTile('📊', 'Zone Reports', 'Weekly summaries'),
-                  _buildListTile('🔔', 'Notifications', 'System alerts'),
-                  _buildListTile('🔒', 'Change Password', 'Security settings'),
-                  _buildListTile('ℹ️', 'About AgriMart', 'Security settings'),
-                  _buildListTile('🚪', 'Logout', '', isLogout: true),
+                  _buildListTile(context, ref, '👤', 'Officer Info', 'Name, ID, department'),
+                  _buildListTile(context, ref, '🗺️', 'Zone Management', 'Zone 3 · Colombo District'),
+                  _buildListTile(context, ref, '📊', 'Zone Reports', 'Weekly summaries'),
+                  _buildListTile(context, ref, '🔔', 'Notifications', 'System alerts'),
+                  _buildListTile(context, ref, '🔒', 'Change Password', 'Security settings'),
+                  _buildListTile(context, ref, 'ℹ️', 'About AgriMart', 'App information'),
+                  _buildListTile(context, ref, '🚪', 'Logout', '', isLogout: true),
                 ],
               ),
             ),
@@ -173,14 +194,14 @@ class OfficerProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildListTile(String emoji, String title, String subtitle, {bool isLogout = false}) {
+  Widget _buildListTile(BuildContext context, WidgetRef ref, String emoji, String title, String subtitle, {bool isLogout = false}) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       leading: Container(
         width: 48,
         height: 48,
         decoration: BoxDecoration(
-          color: Colors.red.shade100, // Pinkish red
+          color: Colors.red.shade50, // Lighter red to match screenshot
           borderRadius: BorderRadius.circular(12),
         ),
         alignment: Alignment.center,
@@ -200,7 +221,15 @@ class OfficerProfilePage extends StatelessWidget {
               style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
             )
           : null,
-      onTap: () {},
+      onTap: () async {
+        if (isLogout) {
+          await ref.read(authControllerProvider.notifier).signOut();
+          if (context.mounted) {
+            Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+          }
+        }
+      },
     );
   }
 }
+

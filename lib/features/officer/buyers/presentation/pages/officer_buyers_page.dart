@@ -12,14 +12,14 @@ class OfficerBuyersPage extends ConsumerStatefulWidget {
 
 class _OfficerBuyersPageState extends ConsumerState<OfficerBuyersPage> {
   String _searchQuery = '';
-  String _selectedFilter = 'ALL';
+  String _selectedFilter = 'All';
 
   @override
   Widget build(BuildContext context) {
     final buyersAsync = ref.watch(buyersProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F9F9),
+      backgroundColor: const Color(0xFFF4F4F4), // Slightly darker grey to match screenshot
       appBar: AppBar(
         automaticallyImplyLeading: false, // Omit back button since it's a tab
         backgroundColor: const Color(0xFF8D5A36), // Brown background
@@ -34,93 +34,216 @@ class _OfficerBuyersPageState extends ConsumerState<OfficerBuyersPage> {
           ),
         ),
       ),
-      body: buyersAsync.when(
-        data: (buyers) {
-          int total = buyers.length;
-          int approved = buyers.where((b) => b.status == 'approved').length;
-          int pending = buyers.where((b) => b.status == 'pending').length;
+      body: SafeArea(
+        child: buyersAsync.when(
+          data: (buyers) {
+            int total = buyers.length;
+            int activeCount = buyers.where((b) => b.status == 'approved').length;
+            int suspendedCount = buyers.where((b) => b.status == 'suspended').length;
 
-          // Filtering
-          List<UserModel> filteredBuyers = buyers.where((b) {
-            bool matchesSearch = b.name.toLowerCase().contains(_searchQuery) ||
-                (b.district ?? '').toLowerCase().contains(_searchQuery);
+            List<UserModel> filteredBuyers = buyers.where((b) {
+              bool matchesSearch = b.name.toLowerCase().contains(_searchQuery) ||
+                  (b.district ?? '').toLowerCase().contains(_searchQuery);
 
-            bool matchesFilter = true;
-            if (_selectedFilter == 'Approved') {
-              matchesFilter = b.status == 'approved';
-            } else if (_selectedFilter == 'Pending') {
-              matchesFilter = b.status == 'pending';
+              bool matchesFilter = true;
+              if (_selectedFilter == 'Active') {
+                matchesFilter = b.status == 'approved';
+              } else if (_selectedFilter == 'Suspended') {
+                matchesFilter = b.status == 'suspended';
+              }
+              return matchesSearch && matchesFilter;
+            }).toList();
+
+            UserModel? topBuyer;
+            List<UserModel> otherBuyers = [];
+
+            if (filteredBuyers.isNotEmpty) {
+              if (_searchQuery.isEmpty && _selectedFilter == 'All') {
+                // Mockup logic: first active buyer is marked as Top Buyer for the UI only on 'All' view
+                int topIndex = filteredBuyers.indexWhere((b) => b.status == 'approved');
+                if (topIndex != -1) {
+                  topBuyer = filteredBuyers[topIndex];
+                  otherBuyers = List.from(filteredBuyers)..removeAt(topIndex);
+                } else {
+                  otherBuyers = filteredBuyers;
+                }
+              } else {
+                otherBuyers = filteredBuyers;
+              }
             }
-            return matchesSearch && matchesFilter;
-          }).toList();
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Search Bar
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade300),
-                  ),
-                  child: TextField(
-                    onChanged: (val) {
-                      setState(() {
-                        _searchQuery = val.toLowerCase();
-                      });
-                    },
-                    decoration: InputDecoration(
-                      hintText: 'Search buyers...',
-                      hintStyle: TextStyle(color: Colors.grey.shade500),
-                      prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 14),
+            return SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Agricultural Officer — Zone 3 Overview',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.grey.shade600,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-
-                // Filter Chips
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
+                  const SizedBox(height: 16),
+                  
+                  // Stat Cards
+                  Row(
                     children: [
-                      _buildFilterChip('ALL', total),
-                      const SizedBox(width: 8),
-                      _buildFilterChip('Approved', approved),
-                      const SizedBox(width: 8),
-                      _buildFilterChip('Pending', pending),
+                      Expanded(
+                        child: _buildStatCard(
+                          total.toString(),
+                          'Total',
+                          const Color(0xFFEBF4FE),
+                          const Color(0xFF1565C0),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildStatCard(
+                          activeCount.toString(),
+                          'Active',
+                          const Color(0xFFF0F7ED),
+                          const Color(0xFF2E7D32),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildStatCard(
+                          suspendedCount.toString(),
+                          'Suspended',
+                          const Color(0xFFFDF0ED),
+                          const Color(0xFF8D6E63), // Brownish text like in screenshot
+                        ),
+                      ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 24),
+                  const SizedBox(height: 24),
 
-                if (filteredBuyers.isEmpty)
-                  const Center(child: Text('No buyers found.'))
-                else
-                  ...filteredBuyers.map((b) {
-                    if (b.status == 'pending') {
+                  // Search Bar
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: TextField(
+                      onChanged: (val) {
+                        setState(() {
+                          _searchQuery = val.toLowerCase();
+                        });
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'Search buyers...',
+                        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+                        prefixIcon: const Icon(Icons.search, color: Colors.grey, size: 20),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Filter Chips
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _buildFilterChip('All', total),
+                        const SizedBox(width: 8),
+                        _buildFilterChip('Active', activeCount),
+                        const SizedBox(width: 8),
+                        _buildFilterChip('Suspended', suspendedCount),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Top Buyers Section
+                  if (topBuyer != null) ...[
+                    const Text(
+                      'Top Buyers',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildBuyerCard(topBuyer, isTopBuyer: true, isSuspended: false),
+                    const SizedBox(height: 24),
+                  ],
+
+                  // All Buyers Section
+                  if (_searchQuery.isEmpty && _selectedFilter == 'All') ...[
+                    const Text(
+                      'All Buyers',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  
+                  if (otherBuyers.isEmpty && topBuyer == null)
+                    Container(
+                      width: double.infinity,
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.symmetric(vertical: 40),
+                      child: Text(
+                        'No buyers found.',
+                        style: TextStyle(color: Colors.grey.shade500),
+                      ),
+                    )
+                  else
+                    ...otherBuyers.map((b) {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12.0),
-                        child: _buildPendingBuyerCard(b),
+                        child: _buildBuyerCard(b, isTopBuyer: false, isSuspended: b.status == 'suspended'),
                       );
-                    } else {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12.0),
-                        child: _buildApprovedBuyerCard(b),
-                      );
-                    }
-                  }).toList(),
-                const SizedBox(height: 20),
-              ],
+                    }).toList(),
+                  const SizedBox(height: 20),
+                ],
+              ),
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (err, stack) => Center(child: Text('Error: $err')),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatCard(String count, String label, Color bgColor, Color textColor) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: bgColor.withOpacity(0.8), width: 1.5),
+      ),
+      child: Column(
+        children: [
+          Text(
+            count,
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w600,
+              color: textColor,
             ),
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('Error: $err')),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+              color: textColor,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -136,181 +259,44 @@ class _OfficerBuyersPageState extends ConsumerState<OfficerBuyersPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.blue.shade50 : Colors.transparent,
+          color: isSelected ? Colors.orange.shade50 : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? Colors.blue.shade200 : Colors.grey.shade300,
+            color: isSelected ? Colors.orange.shade200 : Colors.grey.shade300,
           ),
         ),
         child: Text(
           '$label ($count)',
           style: TextStyle(
-            color: isSelected ? Colors.blue.shade700 : Colors.grey.shade500,
+            color: isSelected ? Colors.brown.shade800 : Colors.grey.shade500,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-            fontSize: 13,
+            fontSize: 11,
           ),
         ),
       ),
     );
   }
 
-  Widget _buildPendingBuyerCard(UserModel buyer) {
+  Widget _buildBuyerCard(UserModel buyer, {required bool isTopBuyer, required bool isSuspended}) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.orange.shade300, width: 1),
-      ),
-      child: Column(
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade100,
-                  shape: BoxShape.circle,
-                ),
-                alignment: Alignment.center,
-                child: const Text('🛒', style: TextStyle(fontSize: 32)),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            buyer.name,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.orange.shade50,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            'Pending',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.orange.shade800,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${buyer.district ?? 'Unknown'} District',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade500,
-                        height: 1.2,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    ref.read(userControllerProvider.notifier).updateUserStatus(buyer.id, 'approved');
-                  },
-                  icon: const Icon(Icons.check, color: Colors.white, size: 18),
-                  label: const Text(
-                    'Approve',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2E7D32),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    ref.read(userControllerProvider.notifier).updateUserStatus(buyer.id, 'rejected');
-                  },
-                  icon: const Icon(
-                    Icons.close,
-                    color: Color(0xFFC62828),
-                    size: 18,
-                  ),
-                  label: const Text(
-                    'Reject',
-                    style: TextStyle(
-                      color: Color(0xFFC62828),
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xFFC62828)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildApprovedBuyerCard(UserModel buyer) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
       ),
       child: Row(
         children: [
           Container(
-            width: 50,
-            height: 50,
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
-              color: Colors.blue.shade50,
+              color: Colors.blue.shade100,
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
-            child: const Text('🛒', style: TextStyle(fontSize: 24)),
+            child: const Icon(Icons.shopping_cart_outlined, color: Colors.black54, size: 20),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -318,31 +304,35 @@ class _OfficerBuyersPageState extends ConsumerState<OfficerBuyersPage> {
                 Text(
                   buyer.name,
                   style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
                     color: Colors.black87,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 4),
                 Text(
-                  '${buyer.district ?? 'Unknown'} · Active',
-                  style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                  '${buyer.district ?? 'Unknown'} · ${isTopBuyer ? '6' : '0'} orders placed',
+                  style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
                 ),
               ],
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: const Color(0xFFE8F5E9),
+              color: isSuspended 
+                  ? Colors.red.shade50 
+                  : (isTopBuyer ? Colors.blue.shade50 : Colors.green.shade50),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Text(
-              'Approved',
+            child: Text(
+              isSuspended ? 'Suspended' : (isTopBuyer ? 'Top Buyer' : 'Active'),
               style: TextStyle(
                 fontSize: 10,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF2E7D32),
+                fontWeight: FontWeight.w600,
+                color: isSuspended 
+                    ? Colors.red.shade700 
+                    : (isTopBuyer ? Colors.blue.shade700 : Colors.green.shade700),
               ),
             ),
           ),
