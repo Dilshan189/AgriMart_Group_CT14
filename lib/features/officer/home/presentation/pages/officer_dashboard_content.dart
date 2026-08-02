@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/providers/user_provider.dart';
 import '../../../../../core/providers/product_provider.dart';
+import '../../../../farmer/home/presentation/pages/home_page.dart';
+import '../../../products/presentation/pages/officer_product_approvals_page.dart';
 
 class OfficerDashboardContent extends ConsumerWidget {
   const OfficerDashboardContent({super.key});
@@ -108,17 +110,17 @@ class OfficerDashboardContent extends ConsumerWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(child: _buildActionButton('🧑‍🌾', 'Manage Farmers')),
+              Expanded(child: _buildActionButton(context, ref, '🧑‍🌾', 'Manage Farmers')),
               const SizedBox(width: 12),
-              Expanded(child: _buildActionButton('🛒', 'Manage Buyers')),
+              Expanded(child: _buildActionButton(context, ref, '🛒', 'Manage Buyers')),
             ],
           ),
           const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(child: _buildActionButton('📦', 'Manage Products')),
+              Expanded(child: _buildActionButton(context, ref, '📦', 'Manage Products')),
               const SizedBox(width: 12),
-              Expanded(child: _buildActionButton('🔔', 'View Alerts')),
+              Expanded(child: _buildActionButton(context, ref, '🔔', 'View Alerts')),
             ],
           ),
           const SizedBox(height: 24),
@@ -213,27 +215,55 @@ class OfficerDashboardContent extends ConsumerWidget {
     );
   }
 
-  Widget _buildActionButton(String emoji, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        children: [
-          Text(emoji, style: const TextStyle(fontSize: 24)),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade700,
-            ),
+  Widget _buildActionButton(BuildContext context, WidgetRef ref, String emoji, String label) {
+    int targetIndex = -1;
+    VoidCallback? customTap;
+    if (label == 'Manage Farmers') {
+      targetIndex = 1;
+    } else if (label == 'Manage Products') {
+      targetIndex = 2;
+    } else if (label == 'Manage Buyers') {
+      targetIndex = 3;
+    } else if (label == 'View Alerts') {
+      customTap = () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const OfficerProductApprovalsPage(),
           ),
-        ],
+        );
+      };
+    }
+
+    return GestureDetector(
+      onTap: () {
+        if (targetIndex != -1) {
+          ref.read(selectedTabProvider.notifier).state = targetIndex;
+        } else if (customTap != null) {
+          customTap();
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Column(
+          children: [
+            Text(emoji, style: const TextStyle(fontSize: 24)),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade700,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

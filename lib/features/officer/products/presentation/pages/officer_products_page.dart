@@ -4,6 +4,7 @@ import '../../../../../core/providers/product_provider.dart';
 import '../../../../../core/models/product_model.dart';
 import 'package:intl/intl.dart';
 import 'officer_add_product_page.dart';
+import 'officer_product_approvals_page.dart';
 
 class OfficerProductsPage extends ConsumerStatefulWidget {
   const OfficerProductsPage({super.key});
@@ -37,25 +38,18 @@ class _OfficerProductsPageState extends ConsumerState<OfficerProductsPage> {
           ),
         ),
         actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.add, color: Color(0xFF2E7D32), size: 20),
-              constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
-              padding: const EdgeInsets.all(4),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const OfficerAddProductPage(),
-                  ),
-                );
-              },
-            ),
+          IconButton(
+            icon: const Icon(Icons.add, color: Color.fromARGB(255, 246, 248, 246), size: 20),
+            constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
+            padding: const EdgeInsets.all(4),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const OfficerAddProductPage(),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -456,10 +450,12 @@ class _OfficerProductsPageState extends ConsumerState<OfficerProductsPage> {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () {
-                    final updated = product.copyWith(status: 'flagged');
-                    ref
-                        .read(productControllerProvider.notifier)
-                        .updateProduct(updated);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const OfficerProductApprovalsPage(),
+                      ),
+                    );
                   },
                   icon: const Icon(
                     Icons.remove_red_eye,

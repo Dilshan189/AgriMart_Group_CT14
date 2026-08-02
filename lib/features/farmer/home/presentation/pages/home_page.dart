@@ -14,22 +14,25 @@ import 'package:agri_mart/features/officer/products/presentation/pages/officer_p
 import 'package:agri_mart/features/officer/buyers/presentation/pages/officer_buyers_page.dart';
 import 'package:agri_mart/features/officer/profile/presentation/pages/officer_profile_page.dart';
 import 'package:agri_mart/features/farmer/home/presentation/pages/farmer_home_content.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
-class HomePage extends StatefulWidget {
+final selectedTabProvider = StateProvider<int>((ref) => 0);
+
+class HomePage extends ConsumerStatefulWidget {
   final String userRole;
   const HomePage({super.key, this.userRole = 'farmer'});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  ConsumerState<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
-  int _selectedIndex = 0;
-
+class _HomePageState extends ConsumerState<HomePage> {
   @override
   Widget build(BuildContext context) {
+    final selectedIndex = ref.watch(selectedTabProvider);
     PreferredSizeWidget? appBar;
-    if (_selectedIndex == 0) {
+    if (selectedIndex == 0) {
       if (widget.userRole == 'buyer') {
         appBar = _buildBuyerAppBar();
       } else if (widget.userRole == 'officer') {
@@ -42,22 +45,20 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9F9),
       appBar: appBar,
-      body: _buildBody(),
+      body: _buildBody(selectedIndex),
       bottomNavigationBar: CustomBottomNavBar(
         userRole: widget.userRole,
-        selectedIndex: _selectedIndex,
+        selectedIndex: selectedIndex,
         onItemSelected: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
+          ref.read(selectedTabProvider.notifier).state = index;
         },
       ),
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(int selectedIndex) {
     if (widget.userRole == 'buyer') {
-      switch (_selectedIndex) {
+      switch (selectedIndex) {
         case 0:
           return const BuyerHomeContent();
         case 1:
@@ -72,7 +73,7 @@ class _HomePageState extends State<HomePage> {
           return const BuyerHomeContent();
       }
     } else if (widget.userRole == 'officer') {
-      switch (_selectedIndex) {
+      switch (selectedIndex) {
         case 0:
           return const OfficerDashboardContent();
         case 1:
@@ -87,7 +88,7 @@ class _HomePageState extends State<HomePage> {
           return const OfficerDashboardContent();
       }
     } else {
-      switch (_selectedIndex) {
+      switch (selectedIndex) {
         case 0:
           return const FarmerHomeContent();
         case 1:
@@ -153,9 +154,7 @@ class _HomePageState extends State<HomePage> {
         ),
         GestureDetector(
           onTap: () {
-            setState(() {
-              _selectedIndex = 4;
-            });
+            ref.read(selectedTabProvider.notifier).state = 4;
           },
           child: Container(
             margin: const EdgeInsets.only(right: 16),
@@ -288,8 +287,4 @@ class _HomePageState extends State<HomePage> {
       ],
     );
   }
-
-
-
-
 }
