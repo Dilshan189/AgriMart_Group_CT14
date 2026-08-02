@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/providers/user_provider.dart';
 import '../../../../../core/models/user_model.dart';
+import 'officer_register_farmer_page.dart';
 
 class OfficerFarmersPage extends ConsumerStatefulWidget {
   const OfficerFarmersPage({super.key});
@@ -29,10 +30,24 @@ class _OfficerFarmersPageState extends ConsumerState<OfficerFarmersPage> {
           'Manage Farmers',
           style: TextStyle(
             color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add, color: Colors.white),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const OfficerRegisterFarmerPage(),
+                ),
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: farmersAsync.when(
         data: (farmers) {
@@ -292,7 +307,7 @@ class _OfficerFarmersPageState extends ConsumerState<OfficerFarmersPage> {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () {
-                    ref.read(userControllerProvider.notifier).updateUserStatus(farmer.id, 'rejected');
+                    _showRejectDialog(context, ref, farmer);
                   },
                   icon: const Icon(
                     Icons.close,
@@ -319,6 +334,105 @@ class _OfficerFarmersPageState extends ConsumerState<OfficerFarmersPage> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showRejectDialog(BuildContext context, WidgetRef ref, UserModel farmer) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Reject Registration?',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'This will deny ${farmer.name} access to AgriMart. They will be notified by the system.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade600,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () {
+                          Navigator.pop(dialogContext);
+                        },
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Color(0xFFFFCA28)), // Amber/Yellow outline
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(
+                            color: Color(0xFFFFB300), // Amber text
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          ref.read(userControllerProvider.notifier).updateUserStatus(farmer.id, 'rejected');
+                          Navigator.pop(dialogContext);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('${farmer.name} has been rejected')),
+                          );
+                        },
+                        icon: const Icon(
+                          Icons.close,
+                          color: Color(0xFFC62828),
+                          size: 16,
+                        ),
+                        label: const Text(
+                          'Confirm\nReject',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Color(0xFFC62828),
+                            fontWeight: FontWeight.bold,
+                            height: 1.2,
+                            fontSize: 13,
+                          ),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Color(0xFFC62828)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

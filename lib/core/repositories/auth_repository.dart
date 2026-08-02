@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import '../models/user_model.dart';
 
 class AuthRepository {
@@ -60,5 +61,39 @@ class AuthRepository {
 
   Future<void> resetPassword(String email) async {
     await _auth.sendPasswordResetEmail(email: email);
+  }
+
+  Future<UserCredential> registerWithoutLoggingOut(
+    String email,
+    String password,
+    Map<String, dynamic> userData,
+  ) async {
+    // We use a secondary Firebase app to create the user so the current officer doesn't get logged out
+    FirebaseApp secondaryApp;
+    try {
+      secondaryApp = Firebase.app('SecondaryApp');
+    } catch (e) {
+      secondaryApp = await Firebase.initializeApp(
+        name: 'SecondaryApp',
+        options: Firebase.app().options,
+      );
+    }
+    
+    final credential = await FirebaseAuth.instanceFor(app: secondaryApp).createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+
+    if (credential.user != null) {
+      userData['createdAt'] = FieldValue.serverTimestamp();
+      userData['email'] = email;
+      await _firestore
+          .collection('users')
+          .doc(credential.user!.uid)
+          .set(userData);
+    }
+    
+    // We do NOT delete the app to avoid issues, we just reuse it next time.
+    return credential;
   }
 }

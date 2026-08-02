@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/providers/product_provider.dart';
 import '../../../../../core/models/product_model.dart';
 import 'package:intl/intl.dart';
+import 'officer_add_product_page.dart';
 
 class OfficerProductsPage extends ConsumerStatefulWidget {
   const OfficerProductsPage({super.key});
@@ -35,6 +36,28 @@ class _OfficerProductsPageState extends ConsumerState<OfficerProductsPage> {
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [
+          Container(
+            margin: const EdgeInsets.only(right: 16),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.add, color: Color(0xFF2E7D32), size: 20),
+              constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
+              padding: const EdgeInsets.all(4),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const OfficerAddProductPage(),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
       body: productsAsync.when(
         data: (products) {
@@ -79,9 +102,9 @@ class _OfficerProductsPageState extends ConsumerState<OfficerProductsPage> {
                       child: _buildStatCard(
                         '$total',
                         'Total',
-                        bgColor: Colors.orange.shade50,
-                        borderColor: Colors.orange.shade200,
-                        textColor: Colors.brown.shade800,
+                        bgColor: const Color(0xFFFFF3E0),
+                        borderColor: const Color(0xFFFFCC80),
+                        textColor: const Color(0xFF795548),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -89,19 +112,9 @@ class _OfficerProductsPageState extends ConsumerState<OfficerProductsPage> {
                       child: _buildStatCard(
                         '$active',
                         'Active',
-                        bgColor: const Color(0xFFEDF5E1),
-                        borderColor: const Color(0xFFC5E1A5),
-                        textColor: const Color(0xFF1B5E20),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _buildStatCard(
-                        '$pending',
-                        'Pending',
-                        bgColor: Colors.blue.shade50,
-                        borderColor: Colors.blue.shade200,
-                        textColor: Colors.blue.shade800,
+                        bgColor: const Color(0xFFE8F5E9),
+                        borderColor: const Color(0xFFA5D6A7),
+                        textColor: const Color(0xFF2E7D32),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -109,9 +122,9 @@ class _OfficerProductsPageState extends ConsumerState<OfficerProductsPage> {
                       child: _buildStatCard(
                         '$flagged',
                         'Flagged',
-                        bgColor: Colors.red.shade50,
-                        borderColor: Colors.red.shade100,
-                        textColor: Colors.red.shade800,
+                        bgColor: const Color(0xFFFFEBEE),
+                        borderColor: const Color(0xFFEF9A9A),
+                        textColor: const Color(0xFFC62828),
                       ),
                     ),
                   ],
@@ -147,11 +160,9 @@ class _OfficerProductsPageState extends ConsumerState<OfficerProductsPage> {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      _buildFilterChip('ALL', total),
+                      _buildFilterChip('All', total),
                       const SizedBox(width: 8),
                       _buildFilterChip('Active', active),
-                      const SizedBox(width: 8),
-                      _buildFilterChip('Pending', pending),
                       const SizedBox(width: 8),
                       _buildFilterChip('Flagged', flagged),
                     ],
@@ -161,20 +172,52 @@ class _OfficerProductsPageState extends ConsumerState<OfficerProductsPage> {
 
                 if (filteredProducts.isEmpty)
                   const Center(child: Text('No products found.'))
-                else
-                  ...filteredProducts.map((p) {
-                    if (p.status == 'pending' || p.status == 'flagged') {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12.0),
-                        child: _buildPendingProductCard(p),
-                      );
-                    } else {
+                else ...[
+                  if (filteredProducts.any(
+                    (p) => p.status == 'pending' || p.status == 'flagged',
+                  )) ...[
+                    const Text(
+                      'Farmer submitted',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ...filteredProducts
+                        .where(
+                          (p) => p.status == 'pending' || p.status == 'flagged',
+                        )
+                        .map((p) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12.0),
+                            child: _buildPendingProductCard(p),
+                          );
+                        })
+                        .toList(),
+                    const SizedBox(height: 12),
+                  ],
+                  if (filteredProducts.any((p) => p.status == 'active')) ...[
+                    const Text(
+                      'Active Products',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ...filteredProducts.where((p) => p.status == 'active').map((
+                      p,
+                    ) {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12.0),
                         child: _buildActiveProductCard(p),
                       );
-                    }
-                  }).toList(),
+                    }).toList(),
+                  ],
+                ],
                 const SizedBox(height: 20),
               ],
             ),
@@ -244,8 +287,8 @@ class _OfficerProductsPageState extends ConsumerState<OfficerProductsPage> {
         child: Text(
           '$label($count)',
           style: TextStyle(
-            color: isSelected ? Colors.brown.shade800 : Colors.grey.shade500,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            color: isSelected ? const Color(0xFF795548) : Colors.grey.shade600,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             fontSize: 12,
           ),
         ),
@@ -272,11 +315,18 @@ class _OfficerProductsPageState extends ConsumerState<OfficerProductsPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 60,
-                height: 60,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFC5E1A5),
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFC5E1A5),
                   shape: BoxShape.circle,
+                  image:
+                      product.imageUrl != null && product.imageUrl!.isNotEmpty
+                      ? DecorationImage(
+                          image: NetworkImage(product.imageUrl!),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
                 ),
               ),
               const SizedBox(width: 12),
@@ -322,19 +372,52 @@ class _OfficerProductsPageState extends ConsumerState<OfficerProductsPage> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Text(
-                      "🧑‍🌾 ${product.farmerName} · ${product.quantity}${product.unit} · Rs.${product.price}/${product.unit}\n📍 ${product.location} · \n${DateFormat('MMM d, h:mm a').format(product.createdAt)}",
+                      "🧑‍🌾 ${product.farmerName} · ${product.quantity}${product.unit} · Rs.${product.price}/${product.unit}",
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 11,
                         color: Colors.grey.shade600,
-                        height: 1.3,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      "📍 ${product.location} · ${DateFormat('MMM d, h:mm a').format(product.createdAt)}",
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey.shade600,
                       ),
                     ),
                   ],
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 16),
+          // View uploaded photo button
+          SizedBox(
+            width: double.infinity,
+            child: TextButton.icon(
+              onPressed: () {
+                // View photo logic
+              },
+              icon: const Icon(Icons.image, color: Colors.black87, size: 18),
+              label: const Text(
+                'View uploaded photo',
+                style: TextStyle(
+                  color: Colors.black87,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
+              style: TextButton.styleFrom(
+                backgroundColor: const Color(0xFFE8F5E9),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
           ),
           const SizedBox(height: 16),
           Row(
@@ -360,50 +443,49 @@ class _OfficerProductsPageState extends ConsumerState<OfficerProductsPage> {
                     backgroundColor: const Color(0xFF2E7D32),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                     padding: const EdgeInsets.symmetric(
-                      vertical: 12,
-                      horizontal: 8,
+                      vertical: 10,
+                      horizontal: 4,
                     ),
                   ),
                 ),
               ),
               const SizedBox(width: 8),
-              if (!isFlagged)
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      final updated = product.copyWith(status: 'flagged');
-                      ref
-                          .read(productControllerProvider.notifier)
-                          .updateProduct(updated);
-                    },
-                    icon: const Icon(
-                      Icons.flag,
-                      color: Color(0xFF6D4C41),
-                      size: 16,
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    final updated = product.copyWith(status: 'flagged');
+                    ref
+                        .read(productControllerProvider.notifier)
+                        .updateProduct(updated);
+                  },
+                  icon: const Icon(
+                    Icons.remove_red_eye,
+                    color: Color(0xFFC62828),
+                    size: 16,
+                  ),
+                  label: const Text(
+                    'Review',
+                    style: TextStyle(
+                      color: Color(0xFFC62828),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
                     ),
-                    label: const Text(
-                      'Flag',
-                      style: TextStyle(
-                        color: Color(0xFF6D4C41),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Color(0xFFC62828)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Color(0xFF8D6E63)),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 12,
-                        horizontal: 8,
-                      ),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 10,
+                      horizontal: 4,
                     ),
                   ),
                 ),
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: OutlinedButton.icon(
@@ -428,11 +510,11 @@ class _OfficerProductsPageState extends ConsumerState<OfficerProductsPage> {
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Color(0xFFC62828)),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                     padding: const EdgeInsets.symmetric(
-                      vertical: 12,
-                      horizontal: 8,
+                      vertical: 10,
+                      horizontal: 4,
                     ),
                   ),
                 ),

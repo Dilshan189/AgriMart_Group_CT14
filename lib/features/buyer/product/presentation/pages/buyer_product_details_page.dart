@@ -67,11 +67,14 @@ class BuyerProductDetailsPage extends ConsumerWidget {
                     size: 18,
                   ),
                 ),
-                onPressed: () {
-                  ref.read(userControllerProvider.notifier).toggleSavedProduct(currentUser, product.id);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(isSaved ? 'Removed from saved products' : 'Added to saved products')),
-                  );
+                onPressed: () async {
+                  await ref.read(userControllerProvider.notifier).toggleSavedProduct(currentUser, product.id);
+                  ref.invalidate(currentUserProvider);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(isSaved ? 'Removed from saved products' : 'Added to saved products')),
+                    );
+                  }
                 },
               );
             },

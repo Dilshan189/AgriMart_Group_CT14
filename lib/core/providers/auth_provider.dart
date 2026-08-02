@@ -47,6 +47,17 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
     }
   }
 
+  Future<void> registerWithoutLoggingOut(String email, String password, Map<String, dynamic> userData) async {
+    state = const AsyncValue.loading();
+    try {
+      await _authRepository.registerWithoutLoggingOut(email, password, userData);
+      state = const AsyncValue.data(null);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      rethrow;
+    }
+  }
+
   Future<void> signOut() async {
     await _authRepository.signOut();
   }
