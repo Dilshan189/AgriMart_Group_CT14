@@ -4,6 +4,7 @@ import '../../../../../core/providers/auth_provider.dart';
 import '../../../../../core/providers/product_provider.dart';
 import '../../../../../core/providers/request_provider.dart';
 import '../../../../../core/router/app_router.dart';
+import '../../../../comman/notifications/presentation/pages/app_notifications_page.dart';
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
@@ -60,6 +61,12 @@ class ProfilePage extends ConsumerWidget {
                   iconBg: const Color(0xFFF1F8E9),
                   title: 'Notifications',
                   subtitle: 'Manage alerts',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => AppNotificationsPage()),
+                    );
+                  },
                 ),
                 _buildMenuItem(
                   icon: Icons.lock,

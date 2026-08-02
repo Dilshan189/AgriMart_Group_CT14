@@ -16,7 +16,6 @@ import 'package:agri_mart/features/officer/profile/presentation/pages/officer_pr
 import 'package:agri_mart/features/farmer/home/presentation/pages/farmer_home_content.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:agri_mart/features/officer/products/presentation/pages/officer_product_approvals_page.dart';
 import 'package:agri_mart/core/providers/product_provider.dart';
 import 'package:agri_mart/features/comman/notifications/presentation/pages/app_notifications_page.dart';
 
@@ -133,7 +132,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const AppNotificationsPage()),
+              MaterialPageRoute(builder: (context) => AppNotificationsPage()),
             );
           },
           child: Stack(
@@ -209,7 +208,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const AppNotificationsPage(),
+                builder: (context) => AppNotificationsPage(),
               ),
             );
           },
@@ -283,7 +282,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const AppNotificationsPage()),
+              MaterialPageRoute(builder: (context) => AppNotificationsPage()),
             );
           },
           child: Stack(

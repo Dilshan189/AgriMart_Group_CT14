@@ -229,7 +229,7 @@ class OfficerDashboardContent extends ConsumerWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const AppNotificationsPage(),
+            builder: (context) => AppNotificationsPage(),
           ),
         );
       };

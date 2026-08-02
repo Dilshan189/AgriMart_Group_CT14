@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:agri_mart/core/providers/auth_provider.dart';
 import 'package:agri_mart/core/models/user_model.dart';
 import 'package:agri_mart/core/providers/request_provider.dart';
+import '../../../../comman/notifications/presentation/pages/app_notifications_page.dart';
 
 class BuyerProfilePage extends ConsumerWidget {
   const BuyerProfilePage({super.key});
@@ -214,8 +215,9 @@ class BuyerProfilePage extends ConsumerWidget {
                   title: 'Notifications',
                   subtitle: 'Manage alerts',
                   onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Notifications feature coming soon!')),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => AppNotificationsPage()),
                     );
                   },
                 ),
