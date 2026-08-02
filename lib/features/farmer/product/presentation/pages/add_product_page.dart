@@ -11,7 +11,7 @@ import '../../../../../core/models/product_model.dart';
 
 class AddProductPage extends ConsumerStatefulWidget {
   final ProductModel? productToEdit;
-  
+
   const AddProductPage({super.key, this.productToEdit});
 
   @override
@@ -74,7 +74,7 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
     setState(() {
       _isGettingLocation = true;
     });
-    
+
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
@@ -88,20 +88,21 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
           throw Exception('Location permissions are denied');
         }
       }
-      
+
       if (permission == LocationPermission.deniedForever) {
         throw Exception('Location permissions are permanently denied');
-      } 
+      }
 
       Position position = await Geolocator.getCurrentPosition();
       setState(() {
-        _locationController.text = '${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}';
+        _locationController.text =
+            '${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}';
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to get location: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to get location: $e')));
       }
     } finally {
       if (mounted) {
@@ -120,7 +121,11 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
     final location = _locationController.text.trim();
     final description = _descriptionController.text.trim();
 
-    if (name.isEmpty || category.isEmpty || quantityText.isEmpty || priceText.isEmpty || location.isEmpty) {
+    if (name.isEmpty ||
+        category.isEmpty ||
+        quantityText.isEmpty ||
+        priceText.isEmpty ||
+        location.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill all required fields')),
       );
@@ -138,13 +143,13 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
       }
 
       String? finalImageUrl = widget.productToEdit?.imageUrl;
-      
+
       if (_selectedImage != null) {
         final storageRef = FirebaseStorage.instance
             .ref()
             .child('product_images')
             .child('${DateTime.now().millisecondsSinceEpoch}.jpg');
-        
+
         final uploadTask = await storageRef.putFile(_selectedImage!);
         finalImageUrl = await uploadTask.ref.getDownloadURL();
       } else if (_isExistingImageRemoved) {
@@ -154,7 +159,9 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
       }
 
       final product = ProductModel(
-        id: widget.productToEdit?.id ?? '', // Firestore auto-generates this if we use doc().set() in repo
+        id:
+            widget.productToEdit?.id ??
+            '', // Firestore auto-generates this if we use doc().set() in repo
         farmerId: user.id,
         farmerName: user.name,
         name: name,
@@ -170,22 +177,30 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
       );
 
       if (widget.productToEdit != null) {
-        await ref.read(productControllerProvider.notifier).updateProduct(product);
+        await ref
+            .read(productControllerProvider.notifier)
+            .updateProduct(product);
       } else {
         await ref.read(productControllerProvider.notifier).addProduct(product);
       }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(widget.productToEdit != null ? 'Product updated successfully!' : 'Product added successfully!')),
+          SnackBar(
+            content: Text(
+              widget.productToEdit != null
+                  ? 'Product updated successfully!'
+                  : 'Product added successfully!',
+            ),
+          ),
         );
         Navigator.pop(context); // Go back after adding
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
       }
     } finally {
       if (mounted) {
@@ -231,10 +246,18 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
             _buildImageUploadBox(),
             const SizedBox(height: 16),
             _buildLabel('Product Name *'),
-            _buildTextField(controller: _nameController, hintText: 'e.g Organic Tomatoes', prefixIcon: '🌿'),
+            _buildTextField(
+              controller: _nameController,
+              hintText: 'e.g Organic Tomatoes',
+              prefixIcon: '🌿',
+            ),
             const SizedBox(height: 16),
             _buildLabel('Category *'),
-            _buildTextField(controller: _categoryController, hintText: 'Vegetables', prefixIcon: '🥦'),
+            _buildTextField(
+              controller: _categoryController,
+              hintText: 'Vegetables',
+              prefixIcon: '🥦',
+            ),
             const SizedBox(height: 16),
             Row(
               children: [
@@ -243,7 +266,11 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildLabel('Quantity (kg) *'),
-                      _buildTextField(controller: _quantityController, hintText: 'e.g. 100', keyboardType: TextInputType.number),
+                      _buildTextField(
+                        controller: _quantityController,
+                        hintText: 'e.g. 100',
+                        keyboardType: TextInputType.number,
+                      ),
                     ],
                   ),
                 ),
@@ -253,7 +280,11 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildLabel('Price (Rs/kg) *'),
-                      _buildTextField(controller: _priceController, hintText: 'e.g. 120', keyboardType: TextInputType.number),
+                      _buildTextField(
+                        controller: _priceController,
+                        hintText: 'e.g. 120',
+                        keyboardType: TextInputType.number,
+                      ),
                     ],
                   ),
                 ),
@@ -263,7 +294,10 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
             _buildLabel('Location (GPS) *'),
             _buildCurrentLocationBox(),
             const SizedBox(height: 8),
-            _buildTextField(controller: _locationController, hintText: 'Or enter location manually'),
+            _buildTextField(
+              controller: _locationController,
+              hintText: 'Or enter location manually',
+            ),
             const SizedBox(height: 16),
             _buildLabel('Description (optional)'),
             _buildTextField(
@@ -283,10 +317,12 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: _isLoading 
+                child: _isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
                     : Text(
-                        widget.productToEdit != null ? 'Save Changes' : 'Submit Product',
+                        widget.productToEdit != null
+                            ? 'Save Changes'
+                            : 'Submit Product',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 16,
@@ -317,9 +353,9 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
   }
 
   Widget _buildTextField({
-    required TextEditingController controller, 
-    String? hintText, 
-    String? prefixIcon, 
+    required TextEditingController controller,
+    String? hintText,
+    String? prefixIcon,
     int maxLines = 1,
     TextInputType? keyboardType,
   }) {
@@ -342,7 +378,10 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
                   child: Text(prefixIcon, style: const TextStyle(fontSize: 16)),
                 )
               : null,
-          prefixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+          prefixIconConstraints: const BoxConstraints(
+            minWidth: 40,
+            minHeight: 40,
+          ),
           border: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(
             horizontal: 16,
@@ -354,13 +393,68 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
   }
 
   Widget _buildImageUploadBox() {
-    bool hasExistingImage = widget.productToEdit?.imageUrl != null && widget.productToEdit!.imageUrl!.isNotEmpty && !_isExistingImageRemoved;
-    
+    bool hasExistingImage =
+        widget.productToEdit?.imageUrl != null &&
+        widget.productToEdit!.imageUrl!.isNotEmpty &&
+        !_isExistingImageRemoved;
+
+    if (_isLoading && _selectedImage != null) {
+      return DottedBorder(
+        options: RoundedRectDottedBorderOptions(
+          color: const Color(0xFF9CCC65),
+          strokeWidth: 1.5,
+          dashPattern: const [8, 4],
+          radius: const Radius.circular(12),
+        ),
+        child: Container(
+          width: double.infinity,
+          height: 150,
+          decoration: BoxDecoration(
+            color: const Color(0xFFF1F8E9),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text('⏳', style: TextStyle(fontSize: 32)),
+              const SizedBox(height: 12),
+              const Text(
+                'Uploading...',
+                style: TextStyle(
+                  color: Color(0xFF387015),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 48.0),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    backgroundColor: const Color(
+                      0xFF9CCC65,
+                    ).withValues(alpha: 0.3),
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                      Color(0xFF387015),
+                    ),
+                    minHeight: 4,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         GestureDetector(
-          onTap: _selectedImage == null && !hasExistingImage ? _pickImage : null,
+          onTap: _selectedImage == null && !hasExistingImage && !_isLoading
+              ? _pickImage
+              : null,
           child: _selectedImage != null || hasExistingImage
               ? Stack(
                   children: [
@@ -368,9 +462,14 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
                       width: double.infinity,
                       height: 150,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF1F8E9), // Light green background
+                        color: const Color(
+                          0xFFF1F8E9,
+                        ), // Light green background
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFF9CCC65), width: 1.5),
+                        border: Border.all(
+                          color: const Color(0xFF9CCC65),
+                          width: 1.5,
+                        ),
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
@@ -405,7 +504,11 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
                             color: const Color(0xFFD32F2F), // Red background
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.close, color: Colors.white, size: 14),
+                          child: const Icon(
+                            Icons.close,
+                            color: Colors.white,
+                            size: 14,
+                          ),
                         ),
                       ),
                     ),
@@ -422,7 +525,9 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
                     width: double.infinity,
                     height: 150,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF1F8E9), // Matches screenshot light green background
+                      color: const Color(
+                        0xFFF1F8E9,
+                      ), // Matches screenshot light green background
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
@@ -455,19 +560,16 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
           const SizedBox(height: 8),
           const Text(
             'Photo selected',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-            ),
+            style: TextStyle(color: Colors.white, fontSize: 12),
           ),
-        ]
+        ],
       ],
     );
   }
 
   Widget _buildCurrentLocationBox() {
     bool hasLocation = _locationController.text.isNotEmpty;
-    
+
     return GestureDetector(
       onTap: _isGettingLocation ? null : _getCurrentLocation,
       child: DottedBorder(
@@ -481,7 +583,9 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
-            color: const Color(0xFFF1F8E9), // Light green background matching screenshot
+            color: const Color(
+              0xFFF1F8E9,
+            ), // Light green background matching screenshot
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
@@ -491,7 +595,10 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
                 const SizedBox(
                   height: 24,
                   width: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF387015)),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Color(0xFF387015),
+                  ),
                 )
               else ...[
                 const Icon(Icons.location_on, color: Colors.black87, size: 24),
@@ -508,16 +615,16 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
                   const SizedBox(height: 4),
                   const Text(
                     'Tap to enable GPS',
-                    style: TextStyle(
-                      color: Color(0xFF387015),
-                      fontSize: 10,
-                    ),
+                    style: TextStyle(color: Color(0xFF387015), fontSize: 10),
                   ),
                 ],
                 if (hasLocation) ...[
                   const SizedBox(height: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFF387015), // Solid green button
                       borderRadius: BorderRadius.circular(8),
@@ -531,7 +638,7 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
                       ),
                     ),
                   ),
-                ]
+                ],
               ],
             ],
           ),

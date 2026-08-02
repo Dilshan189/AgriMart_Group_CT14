@@ -39,6 +39,22 @@ class UserController extends StateNotifier<AsyncValue<void>> {
       state = AsyncValue.error(e, st);
     }
   }
+
+  Future<void> toggleSavedProduct(UserModel user, String productId) async {
+    state = const AsyncValue.loading();
+    try {
+      final List<String> currentSaved = List<String>.from(user.savedProducts);
+      if (currentSaved.contains(productId)) {
+        currentSaved.remove(productId);
+      } else {
+        currentSaved.add(productId);
+      }
+      await _userRepository.updateUserProfile(user.id, {'savedProducts': currentSaved});
+      state = const AsyncValue.data(null);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
 }
 
 final userControllerProvider =

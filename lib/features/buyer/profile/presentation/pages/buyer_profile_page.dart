@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:agri_mart/core/providers/auth_provider.dart';
 import 'package:agri_mart/core/models/user_model.dart';
+import 'package:agri_mart/core/providers/request_provider.dart';
 
 class BuyerProfilePage extends ConsumerWidget {
   const BuyerProfilePage({super.key});
@@ -9,6 +10,7 @@ class BuyerProfilePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userAsyncValue = ref.watch(currentUserProvider);
+    final requestsList = ref.watch(buyerRequestsProvider).value ?? [];
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9F9),
@@ -17,7 +19,11 @@ class BuyerProfilePage extends ConsumerWidget {
           if (user == null) {
             return const Center(child: Text('User not found. Please log in again.'));
           }
-          return _buildProfileContent(context, ref, user);
+          final int totalOrders = requestsList.length;
+          final int acceptedOrders = requestsList.where((req) => req.status == 'accepted').length;
+          final int savedProductsCount = user.savedProducts.length;
+
+          return _buildProfileContent(context, ref, user, totalOrders, acceptedOrders, savedProductsCount);
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(
@@ -27,7 +33,7 @@ class BuyerProfilePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildProfileContent(BuildContext context, WidgetRef ref, UserModel user) {
+  Widget _buildProfileContent(BuildContext context, WidgetRef ref, UserModel user, int totalOrders, int acceptedOrders, int savedProductsCount) {
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -51,7 +57,9 @@ class BuyerProfilePage extends ConsumerWidget {
                       ),
                     ),
                     GestureDetector(
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.pushNamed(context, '/buyerEditProfile');
+                      },
                       child: const Row(
                         children: [
                           Icon(Icons.edit, color: Colors.orangeAccent, size: 16),
@@ -79,14 +87,14 @@ class BuyerProfilePage extends ConsumerWidget {
                       width: 70,
                       height: 70,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: const Color(0xFF90CAF9), // Light blue background
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white, width: 2),
                       ),
                       child: const Center(
                         child: Icon(
-                          Icons.person,
-                          color: Colors.white,
+                          Icons.shopping_cart_outlined,
+                          color: Colors.black54,
                           size: 32,
                         ),
                       ),
@@ -123,9 +131,9 @@ class BuyerProfilePage extends ConsumerWidget {
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(color: Colors.white.withOpacity(0.4)),
                             ),
-                            child: const Text(
-                              '0 Orders placed', // Replace with real data when order module is ready
-                              style: TextStyle(
+                            child: Text(
+                              '$totalOrders Orders placed',
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 12,
                               ),
@@ -148,11 +156,11 @@ class BuyerProfilePage extends ConsumerWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildStatItem('0', 'Orders'),
+                _buildStatItem('$totalOrders', 'Orders'),
                 _buildDivider(),
-                _buildStatItem('0', 'Accepted'),
+                _buildStatItem('$acceptedOrders', 'Accepted'),
                 _buildDivider(),
-                _buildStatItem('0', 'Saved'),
+                _buildStatItem('$savedProductsCount', 'Saved'),
               ],
             ),
           ),
@@ -166,51 +174,74 @@ class BuyerProfilePage extends ConsumerWidget {
                   icon: Icons.person_outline,
                   title: 'Personal Info',
                   subtitle: '${user.email} ${user.phone != null ? '• ${user.phone}' : ''}',
-                ),
-                _buildListDivider(),
-                _buildMenuItem(
-                  icon: Icons.add_circle_outline,
-                  title: 'Post a Request',
-                  subtitle: 'Request a product from farmers',
-                  iconColor: Colors.green,
-                  bgColor: Colors.green.shade50,
                   onTap: () {
-                    Navigator.pushNamed(context, '/buyerPostOpenRequest');
+                    Navigator.pushNamed(context, '/buyerEditProfile');
                   },
                 ),
                 _buildListDivider(),
+
                 _buildMenuItem(
-                  icon: Icons.receipt_long_outlined,
+                  icon: Icons.assignment_outlined,
                   title: 'My Orders',
-                  subtitle: '0 orders placed',
+                  subtitle: '$totalOrders orders placed',
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('My Orders feature coming soon!')),
+                    );
+                  },
                 ),
                 _buildListDivider(),
                 _buildMenuItem(
                   icon: Icons.favorite_border,
                   title: 'Saved Products',
-                  subtitle: '0 saved items',
+                  subtitle: '$savedProductsCount saved items',
+                  onTap: () {
+                    Navigator.pushNamed(context, '/savedProducts');
+                  },
                 ),
                 _buildListDivider(),
                 _buildMenuItem(
                   icon: Icons.location_on_outlined,
                   title: 'Delivery Address',
                   subtitle: user.district ?? 'Not specified',
+                  onTap: () {
+                    Navigator.pushNamed(context, '/buyerEditProfile');
+                  },
                 ),
                 _buildListDivider(),
                 _buildMenuItem(
                   icon: Icons.notifications_none,
                   title: 'Notifications',
                   subtitle: 'Manage alerts',
-                  iconColor: Colors.orange,
-                  bgColor: Colors.orange.withOpacity(0.1),
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Notifications feature coming soon!')),
+                    );
+                  },
                 ),
                 _buildListDivider(),
                 _buildMenuItem(
                   icon: Icons.lock_outline,
                   title: 'Change Password',
                   subtitle: 'Security settings',
-                  iconColor: Colors.amber,
-                  bgColor: Colors.amber.withOpacity(0.1),
+                  onTap: () async {
+                    if (user.email != null) {
+                      try {
+                        await ref.read(authControllerProvider.notifier).resetPassword(user.email!);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Password reset email sent to your email!')),
+                          );
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error: $e')),
+                          );
+                        }
+                      }
+                    }
+                  },
                 ),
                 _buildListDivider(),
                 _buildMenuItem(

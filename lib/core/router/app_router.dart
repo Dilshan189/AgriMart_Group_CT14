@@ -4,6 +4,7 @@ import '../../features/comman/auth/presentation/pages/login_page.dart';
 import '../../features/comman/auth/presentation/pages/register_page.dart';
 import '../../features/farmer/home/presentation/pages/home_page.dart';
 import '../../features/farmer/product/presentation/pages/add_product_page.dart';
+import '../../features/buyer/profile/presentation/pages/saved_products_page.dart';
 import '../../features/farmer/product/presentation/pages/my_products_page.dart';
 import '../../features/buyer/product/presentation/pages/buyer_product_details_page.dart';
 import '../../features/buyer/product/presentation/pages/buyer_place_request_page.dart';
@@ -12,6 +13,7 @@ import '../../features/buyer/requests/presentation/pages/buyer_post_open_request
 import '../models/product_model.dart';
 
 import '../../features/farmer/profile/presentation/pages/edit_profile_page.dart';
+import '../../features/buyer/profile/presentation/pages/buyer_edit_profile_page.dart';
 
 class AppRouter {
   static const String splash = '/';
@@ -24,6 +26,8 @@ class AppRouter {
   static const String buyerPlaceRequest = '/buyerPlaceRequest';
   static const String buyerPostOpenRequest = '/buyerPostOpenRequest';
   static const String editProfile = '/editProfile';
+  static const String buyerEditProfile = '/buyerEditProfile';
+  static const String savedProducts = '/savedProducts';
 
   static Route<dynamic> _errorRoute() {
     return MaterialPageRoute(
@@ -71,6 +75,10 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const BuyerPostOpenRequestPage());
       case editProfile:
         return MaterialPageRoute(builder: (_) => const EditProfilePage());
+      case buyerEditProfile:
+        return MaterialPageRoute(builder: (_) => const BuyerEditProfilePage());
+      case savedProducts:
+        return MaterialPageRoute(builder: (_) => const SavedProductsPage());
       default:
         return _errorRoute();
     }

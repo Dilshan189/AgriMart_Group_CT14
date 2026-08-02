@@ -7,6 +7,7 @@ class UserModel {
   final String? district;
   final String? nic;
   final String status; // 'pending', 'approved', 'suspended'
+  final List<String> savedProducts;
   final DateTime createdAt;
 
   UserModel({
@@ -18,6 +19,7 @@ class UserModel {
     this.district,
     this.nic,
     this.status = 'approved',
+    this.savedProducts = const [],
     required this.createdAt,
   });
 
@@ -31,6 +33,7 @@ class UserModel {
       district: map['district'],
       nic: map['nic'],
       status: map['status'] ?? 'approved',
+      savedProducts: List<String>.from(map['savedProducts'] ?? []),
       createdAt: map['createdAt'] != null
           ? (map['createdAt'] as dynamic).toDate()
           : DateTime.now(),
@@ -46,6 +49,7 @@ class UserModel {
       'district': district,
       'nic': nic,
       'status': status,
+      'savedProducts': savedProducts,
       'createdAt': createdAt,
     };
   }
