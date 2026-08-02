@@ -18,9 +18,14 @@ Future<void> main() async {
   runApp(const ProviderScope(child: AgriMartApp()));
 }
 
-class AgriMartApp extends StatelessWidget {
+class AgriMartApp extends StatefulWidget {
   const AgriMartApp({super.key});
 
+  @override
+  State<AgriMartApp> createState() => _AgriMartAppState();
+}
+
+class _AgriMartAppState extends State<AgriMartApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
