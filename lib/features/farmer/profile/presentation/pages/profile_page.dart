@@ -25,7 +25,7 @@ class ProfilePage extends ConsumerWidget {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          _buildHeader(user?.name ?? 'Farmer', user?.district ?? 'Unknown'),
+          _buildHeader(context, user?.name ?? 'Farmer', user?.district ?? 'Unknown', user?.status ?? 'pending'),
           _buildStatsRow(activeListings, totalRequests, soldCount),
           Expanded(
             child: ListView(
@@ -36,7 +36,9 @@ class ProfilePage extends ConsumerWidget {
                   iconColor: const Color(0xFF455A64),
                   iconBg: const Color(0xFFF1F8E9),
                   title: 'Personal Info',
-                  subtitle: '${user?.name ?? 'Name'}, ${user?.phone ?? 'Phone'}, ${user?.nic ?? 'NIC'}',
+                  subtitle: 'User Name: ${(user?.name?.isNotEmpty == true) ? user!.name : 'No Name'}\n'
+                            'Phone Number: ${(user?.phone?.isNotEmpty == true) ? user!.phone : 'No Phone'}\n'
+                            'NIC Number: ${(user?.nic?.isNotEmpty == true) ? user!.nic : 'No NIC'}',
                 ),
                 _buildMenuItem(
                   icon: Icons.location_on,
@@ -65,13 +67,24 @@ class ProfilePage extends ConsumerWidget {
                   iconBg: const Color(0xFFF1F8E9),
                   title: 'Change Password',
                   subtitle: 'Security settings',
-                ),
-                _buildMenuItem(
-                  icon: Icons.language,
-                  iconColor: const Color(0xFF29B6F6),
-                  iconBg: const Color(0xFFF1F8E9),
-                  title: 'Language',
-                  subtitle: 'English',
+                  onTap: () async {
+                    if (user?.email != null) {
+                      try {
+                        await ref.read(authControllerProvider.notifier).resetPassword(user!.email);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Password reset email sent to your email!')),
+                          );
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error: $e')),
+                          );
+                        }
+                      }
+                    }
+                  },
                 ),
                 _buildMenuItem(
                   icon: Icons.logout,
@@ -96,7 +109,7 @@ class ProfilePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(String name, String district) {
+  Widget _buildHeader(BuildContext context, String name, String district, String status) {
     return Container(
       color: _green,
       padding: const EdgeInsets.only(top: 48, left: 16, right: 16, bottom: 20),
@@ -115,7 +128,9 @@ class ProfilePage extends ConsumerWidget {
                 ),
               ),
               GestureDetector(
-                onTap: () {},
+                onTap: () {
+                  Navigator.pushNamed(context, AppRouter.editProfile);
+                },
                 child: const Row(
                   children: [
                     Icon(Icons.edit, color: Colors.yellow, size: 16),
@@ -180,20 +195,24 @@ class ProfilePage extends ConsumerWidget {
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.15),
                         border: Border.all(
-                          color: const Color(0xFF8BC34A),
+                          color: status == 'approved' ? const Color(0xFF8BC34A) : Colors.orangeAccent,
                           width: 1,
                         ),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.check, color: Color(0xFF8BC34A), size: 14),
-                          SizedBox(width: 4),
+                          Icon(
+                            status == 'approved' ? Icons.check : Icons.hourglass_empty, 
+                            color: status == 'approved' ? const Color(0xFF8BC34A) : Colors.orangeAccent, 
+                            size: 14
+                          ),
+                          const SizedBox(width: 4),
                           Text(
-                            'Verified Farmer',
+                            status == 'approved' ? 'Verified Farmer' : 'Pending Verification',
                             style: TextStyle(
-                              color: Color(0xFF8BC34A),
+                              color: status == 'approved' ? const Color(0xFF8BC34A) : Colors.orangeAccent,
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
                             ),

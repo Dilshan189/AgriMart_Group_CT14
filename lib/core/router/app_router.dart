@@ -11,6 +11,8 @@ import '../../features/buyer/requests/presentation/pages/buyer_post_open_request
 
 import '../models/product_model.dart';
 
+import '../../features/farmer/profile/presentation/pages/edit_profile_page.dart';
+
 class AppRouter {
   static const String splash = '/';
   static const String login = '/login';
@@ -21,6 +23,7 @@ class AppRouter {
   static const String buyerProductDetails = '/buyerProductDetails';
   static const String buyerPlaceRequest = '/buyerPlaceRequest';
   static const String buyerPostOpenRequest = '/buyerPostOpenRequest';
+  static const String editProfile = '/editProfile';
 
   static Route<dynamic> _errorRoute() {
     return MaterialPageRoute(
@@ -66,6 +69,8 @@ class AppRouter {
         return _errorRoute();
       case buyerPostOpenRequest:
         return MaterialPageRoute(builder: (_) => const BuyerPostOpenRequestPage());
+      case editProfile:
+        return MaterialPageRoute(builder: (_) => const EditProfilePage());
       default:
         return _errorRoute();
     }

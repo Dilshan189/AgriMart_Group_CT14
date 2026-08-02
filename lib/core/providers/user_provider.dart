@@ -29,6 +29,16 @@ class UserController extends StateNotifier<AsyncValue<void>> {
       state = AsyncValue.error(e, st);
     }
   }
+
+  Future<void> updateUserProfile(String userId, Map<String, dynamic> data) async {
+    state = const AsyncValue.loading();
+    try {
+      await _userRepository.updateUserProfile(userId, data);
+      state = const AsyncValue.data(null);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
 }
 
 final userControllerProvider =

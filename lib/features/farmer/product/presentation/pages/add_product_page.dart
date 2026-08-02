@@ -29,7 +29,8 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
 
-  XFile? _selectedImage;
+  File? _selectedImage;
+  bool _isExistingImageRemoved = false;
   bool _isLoading = false;
   bool _isGettingLocation = false;
 
@@ -63,7 +64,8 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
       setState(() {
-        _selectedImage = image;
+        _selectedImage = File(image.path);
+        _isExistingImageRemoved = false;
       });
     }
   }
@@ -140,9 +142,15 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
       if (_selectedImage != null) {
         final storageRef = FirebaseStorage.instance
             .ref()
-            .child('products/${DateTime.now().millisecondsSinceEpoch}.jpg');
-        await storageRef.putFile(File(_selectedImage!.path));
-        finalImageUrl = await storageRef.getDownloadURL();
+            .child('product_images')
+            .child('${DateTime.now().millisecondsSinceEpoch}.jpg');
+        
+        final uploadTask = await storageRef.putFile(_selectedImage!);
+        finalImageUrl = await uploadTask.ref.getDownloadURL();
+      } else if (_isExistingImageRemoved) {
+        finalImageUrl = ''; // Explicitly removed
+      } else {
+        finalImageUrl = widget.productToEdit?.imageUrl; // Keep existing
       }
 
       final product = ProductModel(
@@ -346,49 +354,84 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
   }
 
   Widget _buildImageUploadBox() {
-    return GestureDetector(
-      onTap: _pickImage,
-      child: DottedBorder(
-        options: RoundedRectDottedBorderOptions(
-          color: const Color(0xFF9CCC65),
-          strokeWidth: 1.5,
-          dashPattern: const [8, 4],
-          radius: const Radius.circular(12),
-        ),
-        child: Container(
-          width: double.infinity,
-          height: 150,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: _selectedImage != null
-              ? ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.file(
-                    File(_selectedImage!.path),
-                    fit: BoxFit.cover,
+    bool hasExistingImage = widget.productToEdit?.imageUrl != null && widget.productToEdit!.imageUrl!.isNotEmpty && !_isExistingImageRemoved;
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        GestureDetector(
+          onTap: _selectedImage == null && !hasExistingImage ? _pickImage : null,
+          child: _selectedImage != null || hasExistingImage
+              ? Stack(
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      height: 150,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F8E9), // Light green background
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFF9CCC65), width: 1.5),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: _selectedImage != null
+                            ? Image.file(
+                                File(_selectedImage!.path),
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: 150,
+                              )
+                            : Image.network(
+                                widget.productToEdit!.imageUrl!,
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: 150,
+                              ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _selectedImage = null;
+                            _isExistingImageRemoved = true;
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFD32F2F), // Red background
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.close, color: Colors.white, size: 14),
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              : DottedBorder(
+                  options: RoundedRectDottedBorderOptions(
+                    color: const Color(0xFF9CCC65),
+                    strokeWidth: 1.5,
+                    dashPattern: const [8, 4],
+                    radius: const Radius.circular(12),
+                  ),
+                  child: Container(
                     width: double.infinity,
                     height: 150,
-                  ),
-                )
-              : widget.productToEdit?.imageUrl != null && widget.productToEdit!.imageUrl!.isNotEmpty
-                  ? ClipRRect(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F8E9), // Matches screenshot light green background
                       borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        widget.productToEdit!.imageUrl!,
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        height: 150,
-                      ),
-                    )
-                  : Column(
+                    ),
+                    child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.image_outlined, color: Colors.black87, size: 32),
+                        const Text('⏳', style: TextStyle(fontSize: 32)),
                         const SizedBox(height: 8),
                         const Text(
-                          'Tap to upload product photo (Optional)',
+                          'Tap to upload product photo',
                           style: TextStyle(
                             color: Color(0xFF387015),
                             fontSize: 12,
@@ -405,12 +448,26 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
                         ),
                       ],
                     ),
+                  ),
+                ),
         ),
-      ),
+        if (_selectedImage != null || hasExistingImage) ...[
+          const SizedBox(height: 8),
+          const Text(
+            'Photo selected',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+            ),
+          ),
+        ]
+      ],
     );
   }
 
   Widget _buildCurrentLocationBox() {
+    bool hasLocation = _locationController.text.isNotEmpty;
+    
     return GestureDetector(
       onTap: _isGettingLocation ? null : _getCurrentLocation,
       child: DottedBorder(
@@ -424,7 +481,7 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
-            color: const Color(0xFFF1F8E9),
+            color: const Color(0xFFF1F8E9), // Light green background matching screenshot
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
@@ -447,14 +504,34 @@ class _AddProductPageState extends ConsumerState<AddProductPage> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Tap to enable GPS',
-                  style: TextStyle(
-                    color: Color(0xFF387015),
-                    fontSize: 10,
+                if (!hasLocation) ...[
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Tap to enable GPS',
+                    style: TextStyle(
+                      color: Color(0xFF387015),
+                      fontSize: 10,
+                    ),
                   ),
-                ),
+                ],
+                if (hasLocation) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF387015), // Solid green button
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      '✓ Location detected',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ]
               ],
             ],
           ),

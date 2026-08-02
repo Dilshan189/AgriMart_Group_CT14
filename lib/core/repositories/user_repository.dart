@@ -17,4 +17,8 @@ class UserRepository {
   Future<void> updateUserStatus(String userId, String status) async {
     await _firestore.collection('users').doc(userId).update({'status': status});
   }
+
+  Future<void> updateUserProfile(String userId, Map<String, dynamic> data) async {
+    await _firestore.collection('users').doc(userId).update(data);
+  }
 }

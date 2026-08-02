@@ -301,9 +301,13 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
     try {
       await ref.read(requestControllerProvider.notifier).updateRequestStatus(request.id, newStatus);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Request $newStatus')),
-        );
+        if (newStatus == 'accepted') {
+          _showAcceptPopup(request);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Request $newStatus')),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -312,6 +316,65 @@ class _OrdersPageState extends ConsumerState<OrdersPage> {
         );
       }
     }
+  }
+
+  void _showAcceptPopup(RequestModel request) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: Color(0xFF2E5E10), width: 2), // Dark green border
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF00B000), // Vibrant green for the icon box
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.check, color: Colors.white, size: 28),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Request Accepted!',
+                  style: TextStyle(
+                    color: Color(0xFF387015),
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  '${request.buyerName} has been notified.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${request.quantity} of ${request.productName} reserved.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildStatusBadge(String status) {

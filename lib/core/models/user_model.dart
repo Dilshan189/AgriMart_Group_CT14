@@ -27,7 +27,7 @@ class UserModel {
       name: map['name'] ?? '',
       email: map['email'] ?? '',
       role: map['role'] ?? 'buyer',
-      phone: map['phone'],
+      phone: map['phone'] ?? (map['contact'] != null && !map['contact'].toString().contains('@') ? map['contact'] : null),
       district: map['district'],
       nic: map['nic'],
       status: map['status'] ?? 'approved',
