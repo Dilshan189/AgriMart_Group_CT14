@@ -3,13 +3,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/providers/user_provider.dart';
 import '../../../../../core/providers/product_provider.dart';
 
-class OfficerZoneManagementPage extends ConsumerWidget {
+class OfficerZoneManagementPage extends ConsumerStatefulWidget {
   const OfficerZoneManagementPage({super.key});
 
+  @override
+  ConsumerState<OfficerZoneManagementPage> createState() => _OfficerZoneManagementPageState();
+}
+
+class _OfficerZoneManagementPageState extends ConsumerState<OfficerZoneManagementPage> {
   final Color primaryBrown = const Color(0xFF8D5A36);
+  String? _selectedZoneName;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final farmersAsync = ref.watch(farmersProvider);
     final productsAsync = ref.watch(allProductsProvider);
 
@@ -105,6 +111,9 @@ class OfficerZoneManagementPage extends ConsumerWidget {
     String bgHex,
     String textHex,
   ) {
+    final bool isSelected = _selectedZoneName == zoneName;
+
+    // Real calculation: filter farmers by zone field
     final farmersInZone = allFarmers.where((f) {
       if (zoneName == 'Unassigned') {
         return f.zone == null || f.zone.isEmpty;
@@ -120,64 +129,76 @@ class OfficerZoneManagementPage extends ConsumerWidget {
     final bgColor = Color(int.parse(bgHex));
     final textColor = Color(int.parse(textHex));
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedZoneName = zoneName;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? primaryBrown : Colors.grey.shade200,
+            width: isSelected ? 2.0 : 1.0,
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    zoneName,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
-                  ),
-                  Text(
-                    region,
-                    style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
-                  ),
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: bgColor,
-                  borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: isSelected 
+                  ? primaryBrown.withOpacity(0.08) 
+                  : Colors.black.withOpacity(0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      zoneName,
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+                    ),
+                    Text(
+                      region,
+                      style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                    ),
+                  ],
                 ),
-                child: Text(
-                  'Active',
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: textColor),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: bgColor,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    'Active',
+                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: textColor),
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildZoneStat('🧑‍🌾 Farmers', '$farmerCount registered'),
-              ),
-              Expanded(
-                child: _buildZoneStat('📦 Products', '$productCount listed'),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildZoneStat('🧑‍🌾 Farmers', '$farmerCount registered'),
+                ),
+                Expanded(
+                  child: _buildZoneStat('📦 Products', '$productCount listed'),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

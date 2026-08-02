@@ -4,13 +4,19 @@ import '../../../../../core/providers/user_provider.dart';
 import '../../../../../core/providers/product_provider.dart';
 import 'package:intl/intl.dart';
 
-class OfficerZoneReportsPage extends ConsumerWidget {
+class OfficerZoneReportsPage extends ConsumerStatefulWidget {
   const OfficerZoneReportsPage({super.key});
 
+  @override
+  ConsumerState<OfficerZoneReportsPage> createState() => _OfficerZoneReportsPageState();
+}
+
+class _OfficerZoneReportsPageState extends ConsumerState<OfficerZoneReportsPage> {
   final Color primaryBrown = const Color(0xFF8D5A36);
+  String? _selectedReportTitle;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final farmersAsync = ref.watch(farmersProvider);
     final productsAsync = ref.watch(allProductsProvider);
 
@@ -140,81 +146,101 @@ class OfficerZoneReportsPage extends ConsumerWidget {
     int productsCount, {
     bool isMonthly = false,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isMonthly ? const Color(0xFFFFCC80) : Colors.grey.shade200,
-          width: isMonthly ? 1.5 : 1,
+    final bool isSelected = _selectedReportTitle == title;
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedReportTitle = title;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected 
+                ? primaryBrown 
+                : (isMonthly ? const Color(0xFFFFCC80) : Colors.grey.shade200),
+            width: isSelected ? 2.0 : (isMonthly ? 1.5 : 1.0),
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: primaryBrown.withOpacity(0.08),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87),
-              ),
-              if (isMonthly)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFF3E0),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Text(
-                    'Monthly',
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFE65100)),
-                  ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87),
                 ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            dateRange,
-            style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              farmersCount == 0 && productsCount == 0
-                  ? const Text(
-                      'No Data Available',
-                      style: TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.w500),
-                    )
-                  : Row(
-                      children: [
-                        const Text('🧑‍🌾', style: TextStyle(fontSize: 16)),
-                        const SizedBox(width: 6),
-                        Text('$farmersCount Farmers', style: const TextStyle(fontSize: 13, color: Colors.black87)),
-                        const SizedBox(width: 16),
-                        const Text('📦', style: TextStyle(fontSize: 16)),
-                        const SizedBox(width: 6),
-                        Text('$productsCount Products', style: const TextStyle(fontSize: 13, color: Colors.black87)),
-                      ],
+                if (isMonthly)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF3E0),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-              IconButton(
-                icon: Icon(
-                  Icons.download, 
-                  color: farmersCount == 0 && productsCount == 0 ? Colors.grey : Colors.green
+                    child: const Text(
+                      'Monthly',
+                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFE65100)),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              dateRange,
+              style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                farmersCount == 0 && productsCount == 0
+                    ? const Text(
+                        'No Data Available',
+                        style: TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.w500),
+                      )
+                    : Row(
+                        children: [
+                          const Text('🧑‍🌾', style: TextStyle(fontSize: 16)),
+                          const SizedBox(width: 6),
+                          Text('$farmersCount Farmers', style: const TextStyle(fontSize: 13, color: Colors.black87)),
+                          const SizedBox(width: 16),
+                          const Text('📦', style: TextStyle(fontSize: 16)),
+                          const SizedBox(width: 6),
+                          Text('$productsCount Products', style: const TextStyle(fontSize: 13, color: Colors.black87)),
+                        ],
+                      ),
+                IconButton(
+                  icon: Icon(
+                    Icons.download, 
+                    color: farmersCount == 0 && productsCount == 0 ? Colors.grey : Colors.green
+                  ),
+                  onPressed: farmersCount == 0 && productsCount == 0
+                      ? null
+                      : () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Report download started...')),
+                          );
+                        },
                 ),
-                onPressed: farmersCount == 0 && productsCount == 0
-                    ? null
-                    : () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Report download started...')),
-                        );
-                      },
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
