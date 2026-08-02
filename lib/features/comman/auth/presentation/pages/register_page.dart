@@ -19,6 +19,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
   final TextEditingController _nicController = TextEditingController();
+  final TextEditingController _departmentController = TextEditingController();
   String? _selectedDistrict;
   bool _isLoading = false;
   bool _obscurePassword = true;
@@ -38,6 +39,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _departmentController.dispose();
     super.dispose();
   }
 
@@ -48,10 +50,21 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     final password = _passwordController.text.trim();
     final confirmPassword = _confirmPasswordController.text.trim();
     final nic = _nicController.text.trim();
+    final department = _departmentController.text.trim();
 
-    if (name.isEmpty || emailOrPhone.isEmpty || password.isEmpty || district.isEmpty || (_selectedRoleIndex == 0 && nic.isEmpty)) {
+    if (name.isEmpty || emailOrPhone.isEmpty || password.isEmpty || district.isEmpty || 
+        (_selectedRoleIndex == 0 && nic.isEmpty) || 
+        (_selectedRoleIndex == 2 && department.isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_selectedRoleIndex == 0 ? 'Please fill all fields, including NIC, and select a district' : 'Please fill all fields and select a district')),
+        SnackBar(
+          content: Text(
+            _selectedRoleIndex == 0 
+                ? 'Please fill all fields, including NIC, and select a district' 
+                : _selectedRoleIndex == 2 
+                    ? 'Please fill all fields, including Department, and select a district'
+                    : 'Please fill all fields and select a district'
+          ),
+        ),
       );
       return;
     }
@@ -73,7 +86,6 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
     String finalEmail = emailOrPhone;
     if (!emailOrPhone.contains('@')) {
-      // If it doesn't contain @, assume it's a phone number and append a dummy domain
       finalEmail = '$emailOrPhone@agrimart.com';
     }
 
@@ -83,8 +95,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         'role': role,
         'district': district,
         'status': role == 'farmer' ? 'pending' : 'approved',
-        'contact': emailOrPhone, // Save original input
+        'contact': emailOrPhone,
         'nic': nic,
+        if (role == 'officer') 'department': department,
       };
       
       await ref.read(authControllerProvider.notifier).register(finalEmail, password, userData);
@@ -203,6 +216,14 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 autocorrect: false,
               ),
               const SizedBox(height: 16),
+              if (_selectedRoleIndex == 2) ...[
+                _buildInputField(
+                  'Department', 
+                  'Your department (e.g. Department of Agriculture)', 
+                  controller: _departmentController,
+                ),
+                const SizedBox(height: 16),
+              ],
               if (_selectedRoleIndex == 0) ...[
                 _buildInputField(
                   'NIC', 

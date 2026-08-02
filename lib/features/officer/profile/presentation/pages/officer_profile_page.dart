@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/providers/auth_provider.dart';
 import '../../../../../core/providers/user_provider.dart';
+import 'officer_edit_profile_page.dart';
+import 'officer_zone_management_page.dart';
+import 'officer_zone_reports_page.dart';
+import 'officer_about_page.dart';
 
 class OfficerProfilePage extends ConsumerWidget {
   const OfficerProfilePage({super.key});
@@ -38,18 +42,28 @@ class OfficerProfilePage extends ConsumerWidget {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          Row(
-                            children: const [
-                              Text('✏️', style: TextStyle(fontSize: 16)),
-                              SizedBox(width: 4),
-                              Text(
-                                'Edit',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14,
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const OfficerEditProfilePage(),
                                 ),
-                              ),
-                            ],
+                              );
+                            },
+                            child: Row(
+                              children: const [
+                                Text('✏️', style: TextStyle(fontSize: 16)),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Edit',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -86,9 +100,11 @@ class OfficerProfilePage extends ConsumerWidget {
                                   ),
                                 ),
                                 const SizedBox(height: 8),
-                                const Text(
-                                  'Agricultural Officer · Zone 3',
-                                  style: TextStyle(
+                                Text(
+                                  user.value?.department != null && user.value!.department!.isNotEmpty
+                                      ? 'Agricultural Officer · ${user.value!.department}'
+                                      : 'Agricultural Officer · Zone 3',
+                                  style: const TextStyle(
                                     fontSize: 12,
                                     color: Colors.white70,
                                   ),
@@ -227,6 +243,48 @@ class OfficerProfilePage extends ConsumerWidget {
           if (context.mounted) {
             Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
           }
+        } else if (title == 'Officer Info') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const OfficerEditProfilePage()),
+          );
+        } else if (title == 'Zone Management') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const OfficerZoneManagementPage()),
+          );
+        } else if (title == 'Zone Reports') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const OfficerZoneReportsPage()),
+          );
+        } else if (title == 'Change Password') {
+          final currentUser = ref.read(currentUserProvider).value;
+          if (currentUser != null && currentUser.email.isNotEmpty) {
+            try {
+              await ref.read(authControllerProvider.notifier).resetPassword(currentUser.email);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Password reset email sent to ${currentUser.email}')),
+                );
+              }
+            } catch (e) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Failed to send reset email: $e')),
+                );
+              }
+            }
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Email not found. Cannot reset password.')),
+            );
+          }
+        } else if (title == 'About AgriMart') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const OfficerAboutPage()),
+          );
         }
       },
     );

@@ -10,6 +10,9 @@ class UserModel {
   final List<String> savedProducts;
   final DateTime createdAt;
 
+  final String? zone;
+  final String? department;
+
   UserModel({
     required this.id,
     required this.name,
@@ -21,6 +24,8 @@ class UserModel {
     this.status = 'approved',
     this.savedProducts = const [],
     required this.createdAt,
+    this.zone,
+    this.department,
   });
 
   factory UserModel.fromMap(Map<String, dynamic> map, String documentId) {
@@ -37,6 +42,8 @@ class UserModel {
       createdAt: map['createdAt'] != null
           ? (map['createdAt'] as dynamic).toDate()
           : DateTime.now(),
+      zone: map['zone'],
+      department: map['department'],
     );
   }
 
@@ -51,6 +58,8 @@ class UserModel {
       'status': status,
       'savedProducts': savedProducts,
       'createdAt': createdAt,
+      'zone': zone,
+      'department': department,
     };
   }
 }
