@@ -7,7 +7,6 @@ import 'package:agri_mart/features/farmer/profile/presentation/pages/profile_pag
 import 'package:agri_mart/features/buyer/home/presentation/pages/buyer_home_content.dart';
 import 'package:agri_mart/features/buyer/profile/presentation/pages/buyer_profile_page.dart';
 import 'package:agri_mart/features/buyer/browse/presentation/pages/buyer_browse_page.dart';
-import 'package:agri_mart/features/buyer/notifications/presentation/pages/buyer_notifications_page.dart';
 import 'package:agri_mart/features/buyer/orders/presentation/pages/buyer_orders_page.dart';
 import 'package:agri_mart/features/officer/farmers/presentation/pages/officer_farmers_page.dart';
 import 'package:agri_mart/features/officer/products/presentation/pages/officer_products_page.dart';
@@ -66,7 +65,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         case 1:
           return const BuyerBrowsePage();
         case 2:
-          return const BuyerNotificationsPage();
+          return const AppNotificationsPage(showBackButton: false);
         case 3:
           return const BuyerOrdersPage();
         case 4:

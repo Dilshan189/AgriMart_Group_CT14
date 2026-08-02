@@ -5,11 +5,17 @@ import '../../../../../core/providers/product_provider.dart';
 import '../../../../../core/providers/user_provider.dart';
 import '../../../../../core/providers/request_provider.dart';
 
-class AppNotificationsPage extends ConsumerWidget {
-  const AppNotificationsPage({super.key});
+class AppNotificationsPage extends ConsumerStatefulWidget {
+  final bool showBackButton;
+  const AppNotificationsPage({super.key, this.showBackButton = true});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AppNotificationsPage> createState() => _AppNotificationsPageState();
+}
+
+class _AppNotificationsPageState extends ConsumerState<AppNotificationsPage> {
+  @override
+  Widget build(BuildContext context) {
     final userAsync = ref.watch(currentUserProvider);
     final productsAsync = ref.watch(allProductsProvider);
     final farmersAsync = ref.watch(farmersProvider);
@@ -195,19 +201,22 @@ class AppNotificationsPage extends ConsumerWidget {
         return Scaffold(
           backgroundColor: const Color(0xFFF9F9F9),
           appBar: AppBar(
+            automaticallyImplyLeading: widget.showBackButton,
             backgroundColor: themeColor,
             elevation: 0,
-            leading: IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.arrow_back, color: Colors.black, size: 16),
-              ),
-              onPressed: () => Navigator.pop(context),
-            ),
+            leading: widget.showBackButton
+                ? IconButton(
+                    icon: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.arrow_back, color: Colors.black, size: 16),
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                  )
+                : null,
             title: const Text(
               'Notifications',
               style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
