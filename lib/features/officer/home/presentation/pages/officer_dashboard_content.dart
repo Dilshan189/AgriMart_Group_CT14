@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/providers/user_provider.dart';
 import '../../../../../core/providers/product_provider.dart';
 import '../../../../farmer/home/presentation/pages/home_page.dart';
-import '../../../products/presentation/pages/officer_product_approvals_page.dart';
+import '../../../../comman/notifications/presentation/pages/app_notifications_page.dart';
 
 class OfficerDashboardContent extends ConsumerWidget {
   const OfficerDashboardContent({super.key});
@@ -229,7 +229,7 @@ class OfficerDashboardContent extends ConsumerWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const OfficerProductApprovalsPage(),
+            builder: (context) => AppNotificationsPage(),
           ),
         );
       };

@@ -7,7 +7,6 @@ import 'package:agri_mart/features/farmer/profile/presentation/pages/profile_pag
 import 'package:agri_mart/features/buyer/home/presentation/pages/buyer_home_content.dart';
 import 'package:agri_mart/features/buyer/profile/presentation/pages/buyer_profile_page.dart';
 import 'package:agri_mart/features/buyer/browse/presentation/pages/buyer_browse_page.dart';
-import 'package:agri_mart/features/buyer/notifications/presentation/pages/buyer_notifications_page.dart';
 import 'package:agri_mart/features/buyer/orders/presentation/pages/buyer_orders_page.dart';
 import 'package:agri_mart/features/officer/farmers/presentation/pages/officer_farmers_page.dart';
 import 'package:agri_mart/features/officer/products/presentation/pages/officer_products_page.dart';
@@ -16,6 +15,8 @@ import 'package:agri_mart/features/officer/profile/presentation/pages/officer_pr
 import 'package:agri_mart/features/farmer/home/presentation/pages/farmer_home_content.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:agri_mart/core/providers/product_provider.dart';
+import 'package:agri_mart/features/comman/notifications/presentation/pages/app_notifications_page.dart';
 
 final selectedTabProvider = StateProvider<int>((ref) => 0);
 
@@ -64,7 +65,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         case 1:
           return const BuyerBrowsePage();
         case 2:
-          return const BuyerNotificationsPage();
+          return const AppNotificationsPage(showBackButton: false);
         case 3:
           return const BuyerOrdersPage();
         case 4:
@@ -126,31 +127,39 @@ class _HomePageState extends ConsumerState<HomePage> {
         ],
       ),
       actions: [
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            Container(
-              margin: const EdgeInsets.only(right: 12),
-              padding: const EdgeInsets.all(6),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-              ),
-              child: const Text('🔔', style: TextStyle(fontSize: 20)),
-            ),
-            Positioned(
-              right: 8,
-              top: 3,
-              child: Container(
-                width: 12,
-                height: 12,
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => AppNotificationsPage()),
+            );
+          },
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                margin: const EdgeInsets.only(right: 12),
+                padding: const EdgeInsets.all(6),
                 decoration: const BoxDecoration(
-                  color: Colors.red,
+                  color: Colors.white,
                   shape: BoxShape.circle,
                 ),
+                child: const Text('🔔', style: TextStyle(fontSize: 20)),
               ),
-            ),
-          ],
+              Positioned(
+                right: 8,
+                top: 3,
+                child: Container(
+                  width: 12,
+                  height: 12,
+                  decoration: const BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
         GestureDetector(
           onTap: () {
@@ -171,6 +180,9 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   PreferredSizeWidget _buildOfficerAppBar() {
+    final products = ref.watch(allProductsProvider).value ?? [];
+    final hasPending = products.any((p) => p.status == 'pending');
+
     return AppBar(
       automaticallyImplyLeading: false,
       backgroundColor: const Color(0xFF8D5A36), // Brown background
@@ -190,40 +202,56 @@ class _HomePageState extends ConsumerState<HomePage> {
         ],
       ),
       actions: [
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            Container(
-              margin: const EdgeInsets.only(right: 12),
-              padding: const EdgeInsets.all(6),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AppNotificationsPage(),
               ),
-              child: const Text('🔔', style: TextStyle(fontSize: 18)),
-            ),
-            Positioned(
-              right: 12,
-              top: 10,
-              child: Container(
-                width: 8,
-                height: 8,
+            );
+          },
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                margin: const EdgeInsets.only(right: 12),
+                padding: const EdgeInsets.all(6),
                 decoration: const BoxDecoration(
-                  color: Colors.red,
+                  color: Colors.white,
                   shape: BoxShape.circle,
                 ),
+                child: const Text('🔔', style: TextStyle(fontSize: 18)),
               ),
-            ),
-          ],
-        ),
-        Container(
-          margin: const EdgeInsets.only(right: 16),
-          padding: const EdgeInsets.all(6),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
+              if (hasPending)
+                Positioned(
+                  right: 12,
+                  top: 10,
+                  child: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
           ),
-          child: const Text('👤', style: TextStyle(fontSize: 18)),
+        ),
+        GestureDetector(
+          onTap: () {
+            ref.read(selectedTabProvider.notifier).state = 4;
+          },
+          child: Container(
+            margin: const EdgeInsets.only(right: 16),
+            padding: const EdgeInsets.all(6),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+            ),
+            child: const Text('👤', style: TextStyle(fontSize: 18)),
+          ),
         ),
       ],
     );
@@ -249,31 +277,39 @@ class _HomePageState extends ConsumerState<HomePage> {
         ],
       ),
       actions: [
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            Container(
-              margin: const EdgeInsets.only(right: 12),
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: Colors.amber.withOpacity(0.2), // Light yellowish
-                shape: BoxShape.circle,
-              ),
-              child: const Text('🔔', style: TextStyle(fontSize: 18)),
-            ),
-            Positioned(
-              right: 12,
-              top: 10,
-              child: Container(
-                width: 8,
-                height: 8,
-                decoration: const BoxDecoration(
-                  color: Colors.red,
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => AppNotificationsPage()),
+            );
+          },
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                margin: const EdgeInsets.only(right: 12),
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withOpacity(0.2), // Light yellowish
                   shape: BoxShape.circle,
                 ),
+                child: const Text('🔔', style: TextStyle(fontSize: 18)),
               ),
-            ),
-          ],
+              Positioned(
+                right: 12,
+                top: 10,
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
         Container(
           margin: const EdgeInsets.only(right: 16),

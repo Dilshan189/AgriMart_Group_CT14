@@ -1,3 +1,4 @@
+import 'package:agri_mart/features/comman/notifications/presentation/pages/app_notifications_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/providers/auth_provider.dart';
@@ -6,6 +7,7 @@ import 'officer_edit_profile_page.dart';
 import 'officer_zone_management_page.dart';
 import 'officer_zone_reports_page.dart';
 import 'officer_about_page.dart';
+
 
 class OfficerProfilePage extends ConsumerWidget {
   const OfficerProfilePage({super.key});
@@ -280,6 +282,11 @@ class OfficerProfilePage extends ConsumerWidget {
               const SnackBar(content: Text('Email not found. Cannot reset password.')),
             );
           }
+        } else if (title == 'Notifications') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AppNotificationsPage()),
+          );
         } else if (title == 'About AgriMart') {
           Navigator.push(
             context,
